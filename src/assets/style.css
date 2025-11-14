@@ -1,0 +1,27 @@
+/* Container du toast */
+.p-toast {
+  z-index: 99999 !important;
+}
+
+/* Message du toast */
+.p-toast-message-content,
+.p-toast-message-content * {
+  color: white !important;
+}
+
+/* Couleurs par type */
+.p-toast-message-success {
+  background-color: #16a34a !important;
+}
+
+.p-toast-message-info {
+  background-color: #0284c7 !important;
+}
+
+.p-toast-message-warn {
+  background-color: #ea580c !important;
+}
+
+.p-toast-message-error {
+  background-color: #dc2626 !important;
+}

@@ -53,16 +53,17 @@ const tempsInactivite = computed(() => formatTime(auth.inactivityRestant));
 
 function handleItemClick(item) {
   if (item.id === "logout") {
-    confirmDialog.showDialog(
-      'Êtes-vous sûr de vouloir vous déconnecter ?', // message
-      () => { // callback si Oui
-        removeAllToasts();
-        console.log('🚪 Déconnexion manuelle depuis Topbar');
-        preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
-          auth.logoutServer();
-        }, 1500);
-      }
-    );
+    confirmDialog.showDialog({
+        msgDialog: 'Voulez-vous vraiment vous déconnecter ?',
+        headerDialog: 'Déconnexion',
+        widthDialog: '400px',
+        callback: () => {
+            removeAllToasts();
+            preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
+                auth.logoutServer();
+            }, 1500);
+        }
+    });
   }
 }
 

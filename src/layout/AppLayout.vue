@@ -9,15 +9,20 @@
             />
             <p class="preloaderS-message">{{ preloaderSpinner.messageSpiner }}</p>
         </div>
-        <Dialog header="Confirmation" v-model:visible="confirmDialog.loadingDialog" :style="{ width: '350px' }" :modal="true">
-            <div class="flex items-center justify-center">
-                <i class="pi pi-exclamation-triangle mr-4" style="font-size: 2rem" />
-                <span>{{ confirmDialog.messageDialog }}</span>
-            </div>
-            <template #footer>
-                <Button label="Non" icon="pi pi-times" text severity="secondary" @click="confirmDialog.hideDialog()" />
-                <Button label="Oui" icon="pi pi-check" severity="danger" autofocus @click="confirmDialog.confirmDialog()" />
-            </template>
+        <Dialog
+          :header="confirmDialog.headerDialog"
+          v-model:visible="confirmDialog.loadingDialog"
+          :style="{ width: confirmDialog.widthDialog }"
+          :modal="true"
+        >
+          <div class="flex items-center justify-left">
+              <i class="pi pi-exclamation-triangle mr-4" style="font-size: 2rem" />
+              <span>{{ confirmDialog.messageDialog }}</span>
+          </div>
+          <template #footer>
+              <Button label="No" icon="pi pi-times" text severity="secondary" @click="confirmDialog.hideDialog()" />
+              <Button label="Yes" icon="pi pi-check" severity="danger" autofocus @click="confirmDialog.confirmDialog()" />
+          </template>
         </Dialog>
         <app-topbar></app-topbar>
         <app-sidebar></app-sidebar>

@@ -9,6 +9,16 @@
             />
             <p class="preloaderS-message">{{ preloaderSpinner.messageSpiner }}</p>
         </div>
+        <Dialog header="Confirmation" v-model:visible="confirmDialog.loadingDialog" :style="{ width: '350px' }" :modal="true">
+            <div class="flex items-center justify-center">
+                <i class="pi pi-exclamation-triangle mr-4" style="font-size: 2rem" />
+                <span>{{ confirmDialog.messageDialog }}</span>
+            </div>
+            <template #footer>
+                <Button label="Non" icon="pi pi-times" text severity="secondary" @click="confirmDialog.hideDialog()" />
+                <Button label="Oui" icon="pi pi-check" severity="danger" autofocus @click="confirmDialog.confirmDialog()" />
+            </template>
+        </Dialog>
         <app-topbar></app-topbar>
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
@@ -37,7 +47,9 @@
 
 <script setup>
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
+import { useConfirmDialog } from '@/function/stores/confirmDialog';
 import { useLayout } from '@/layout/composables/layout';
+import { onPresetChange }  from './composables/AppConfigurator.js';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
@@ -57,6 +69,9 @@ const { showSwal } = useSwalAlert();
 const { removeAllToasts } = useToastAlert();
 const preloader = usePreloaderStore();
 const preloaderSpinner = usePreloaderSpinner();
+const confirmDialog = useConfirmDialog();
+
+onPresetChange();
 
 let swalShown = false;
 
@@ -74,6 +89,10 @@ router.afterEach(() => {
         }, 500); // 0.5s ou 2s selon ton besoin
     }
 });
+
+onMounted(() => {
+    // onPresetChange()
+})
 
 watch(isSidebarActive, (newVal) => {
     if (newVal) {

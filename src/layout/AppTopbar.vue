@@ -1,15 +1,16 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import AppConfigurator from './AppConfigurator.vue';
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from '@/function/stores/auth';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 import { useToastAlert } from '@/function/function/ToastAlert';
+import { useConfirmDialog } from '@/function/stores/confirmDialog';
 
 const auth = useAuthStore();
 const { removeAllToasts } = useToastAlert();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const preloaderSpinner = usePreloaderSpinner();
+const confirmDialog = useConfirmDialog();
 
 const items = ref([
     {
@@ -52,12 +53,16 @@ const tempsInactivite = computed(() => formatTime(auth.inactivityRestant));
 
 function handleItemClick(item) {
   if (item.id === "logout") {
-    removeAllToasts();
-    console.log('🚪 Déconnexion manuelle depuis Topbar');
-
-    preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
-      auth.logoutServer();
-    }, 1500);
+    confirmDialog.showDialog(
+      'Êtes-vous sûr de vouloir vous déconnecter ?', // message
+      () => { // callback si Oui
+        removeAllToasts();
+        console.log('🚪 Déconnexion manuelle depuis Topbar');
+        preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
+          auth.logoutServer();
+        }, 1500);
+      }
+    );
   }
 }
 

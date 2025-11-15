@@ -40,6 +40,7 @@
                             <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié?</span>
                         </div>
                         <Button
+                            size="large"
                             type="submit"
                             class="w-full"
                             :loading="loading"

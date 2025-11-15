@@ -7,6 +7,7 @@ export const useConfirmDialog = defineStore('confirmDialog', () => {
   const headerDialog = ref('Confirmation'); // titre du dialog
   const widthDialog = ref('350px');         // largeur du dialog
   const onConfirmDialog = ref(null); // ✅ callback à exécuter si Oui
+  const iconDialog = ref('pi pi-exclamation-triangle');  
 
   function showDialog(options = {}) {
     messageDialog.value = options.msgDialog || 'Êtes-vous sûr de continuer ?';
@@ -14,6 +15,7 @@ export const useConfirmDialog = defineStore('confirmDialog', () => {
     widthDialog.value = options.widthDialog || '350px';
     onConfirmDialog.value = options.callback || null;
     loadingDialog.value = true;
+    iconDialog.value = options.iconDialog || 'pi pi-exclamation-triangle';
   }
 
   function hideDialog() {
@@ -22,6 +24,7 @@ export const useConfirmDialog = defineStore('confirmDialog', () => {
     onConfirmDialog.value = null;
     headerDialog.value = 'Confirmation';
     widthDialog.value = '350px';
+    iconDialog.value  = 'pi pi-exclamation-triangle';
   }
 
   function confirmDialog() {
@@ -37,6 +40,7 @@ export const useConfirmDialog = defineStore('confirmDialog', () => {
     hideDialog,
     confirmDialog,
     widthDialog,
-    headerDialog
+    headerDialog,
+    iconDialog,
   };
 });

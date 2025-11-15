@@ -35,7 +35,7 @@ const routes = [
     { path: '/maintenance', name: 'Maintenance', component: () => import('@/views/Maintenance.vue'), meta: { title: 'Maintenance', requiresAuth: true } },
     { path: '/authentification', name: 'Authentification', component: () => import('@/views/pages/auth/Login.vue'), meta: { title: 'Login' } },
     // Route 404 en dernier
-    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue'), meta: { title: 'Page introuvable' } },
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/pages/NotFound.vue'), meta: { title: 'Page introuvable' } },
 ];
 
 const router = createRouter({

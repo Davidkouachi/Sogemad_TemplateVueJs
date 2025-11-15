@@ -57,6 +57,7 @@ function handleItemClick(item) {
         msgDialog: 'Voulez-vous vraiment vous déconnecter ?',
         headerDialog: 'Déconnexion',
         widthDialog: '400px',
+        iconDialog: 'pi pi-exclamation-triangle',
         callback: () => {
             removeAllToasts();
             preloaderSpinner.showSpiner('Déconnexion en cours...', () => {

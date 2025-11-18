@@ -24,6 +24,9 @@ import Toast from 'primevue/toast';
 import { useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import { useNoTouche } from '@/function/stores/noTouche';
+import { onPresetChange }  from '@/layout/composables/AppConfigurator.js';
+
+onPresetChange();
 
 const toast = useToast();
 const router = useRouter();

@@ -4,13 +4,13 @@ import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from '@/function/stores/auth';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 import { useToastAlert } from '@/function/function/ToastAlert';
-import { useConfirmDialog } from '@/function/stores/confirmDialog';
+import { useConfirm } from "primevue/useconfirm";
 
 const auth = useAuthStore();
 const { removeAllToasts } = useToastAlert();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const preloaderSpinner = usePreloaderSpinner();
-const confirmDialog = useConfirmDialog();
+const confirm = useConfirm();
 
 const items = ref([
     {
@@ -51,22 +51,40 @@ function formatTime(seconds) {
 const tempsToken = computed(() => formatTime(auth.tempsRestant));
 const tempsInactivite = computed(() => formatTime(auth.inactivityRestant));
 
-function handleItemClick(item) {
-  if (item.id === "logout") {
-    confirmDialog.showDialog({
-        msgDialog: 'Voulez-vous vraiment vous déconnecter ?',
-        headerDialog: 'Déconnexion',
-        widthDialog: '400px',
-        iconDialog: 'pi pi-exclamation-triangle',
-        callback: () => {
-            removeAllToasts();
-            preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
-                auth.logoutServer();
-            }, 1500);
-        }
-    });
-  }
-}
+function handleItemClick (item, position) {
+    if (item.id === "logout") {
+        confirm.require({
+            group: 'positioned',
+            message: 'Voulez-vous vraiment vous déconnecter ?',
+            header: 'Confirmation',
+            icon: 'pi pi-info-circle',
+            position: position,
+            rejectProps: {
+                icon: 'pi pi-times',
+                label: 'Non',
+                severity: 'danger',
+                outlined: false,
+                size: 'normal',
+            },
+            acceptProps: {
+                icon: 'pi pi-check',
+                label: 'Oui',
+                severity: 'success',
+                outlined: false,
+                size: 'normal',
+            },
+            accept: () => {
+                removeAllToasts();
+                preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
+                    auth.logoutServer();
+                });
+            },
+            reject: () => {
+                return false;
+            }
+        });
+    }
+};
 
 </script>
 
@@ -121,7 +139,7 @@ function handleItemClick(item) {
                                 <span class="text-primary font-bold">{{ item.label }}</span>
                             </template>
                             <template #item="{ item, props }">
-                                <a v-ripple class="flex items-center" v-bind="props.action" :id="item.id" @click="handleItemClick(item)">
+                                <a v-ripple class="flex items-center" v-bind="props.action" :id="item.id" @click="handleItemClick(item, 'top')">
                                     <span :class="item.icon" />
                                     <span>{{ item.label }}</span>
                                     <Badge v-if="item.badge" class="ml-auto" :value="item.badge" />

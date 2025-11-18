@@ -17,19 +17,7 @@
                         <InputText id="login1" type="text" placeholder="Email address" class="w-full mb-8" v-model="login" />
 
                         <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Mot de passe</label>
-                        <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="true">
-                            <template #header>
-                                <div class="font-semibold text-xm mb-4">Conditions</div>
-                            </template>
-                            <template #footer>
-                                <Divider />
-                                <ul class="pl-2 my-0 leading-normal text-sm">
-                                    <li>At least one lowercase</li>
-                                    <li>At least one uppercase</li>
-                                    <li>At least one numeric</li>
-                                    <li>Minimum 8 characters</li>
-                                </ul>
-                            </template>
+                        <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false">
                         </Password>
 
                         <div class="flex items-center justify-between mt-2 mb-8 gap-8">
@@ -45,6 +33,7 @@
                             class="w-full"
                             :loading="loading"
                             severity="success"
+                            :disabled="loading"
                             :label="loading ? 'Connexion en cours...' : 'Connexion'"
                         />
                     </div>
@@ -58,7 +47,7 @@
 <script setup>
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { useToast } from 'primevue/usetoast';
-import { ref, onMounted, onUnmounted, getCurrentInstance } from 'vue'
+import { ref, onMounted, onUnmounted, getCurrentInstance, computed } from 'vue'
 import Swal from 'sweetalert2'
 import axios from '@/function/services/axios';
 import { useToastAlert } from '@/function/function/ToastAlert';
@@ -79,50 +68,59 @@ const router = useRouter();
 
 const backgroundImage = new URL('@/assets/img/plan1.jpg', import.meta.url).href
 
+let submitting = false;
+
 const connectLoginForm = async () => {
+    if (submitting) return;   // 🔥 empêche 100% des doubles appels
+    submitting = true;
 
     if (!login.value || !password.value) {
-      showToast('warn', 'Alerte', 'Login et mot de passe sont obligatoires');
-      return;
+        showToast('warn', 'Alerte', 'Login et mot de passe sont obligatoires');
+        submitting = false;
+        return;
     }
 
     loading.value = true;
 
     try {
-      const res = await axios.post('/api/login', {
-        login: login.value,
-        password: password.value
-      });
 
-      if (res.data.success) {
+        const res = await axios.post('/api/login', {
+            login: login.value,
+            password: password.value
+        });
 
-        const { access_token, refresh_token, user, expires_in } = res.data;
+        if (res.data.success) {
 
-        auth.setUserSession(user, expires_in, access_token, refresh_token);
+            const { access_token, refresh_token, user, expires_in } = res.data;
 
-        const mainId = showToast(
-          'success',
-          'Compte connecté',
-          `Bienvenue ${user.name}, nous sommes heureux de vous revoir 🤝!`,
-          5000,
-          '1'
-        );
+            auth.setUserSession(user, expires_in, access_token, refresh_token);
 
-        localStorage.setItem('nu', user.name);
+            const mainId = showToast(
+                'success',
+                'Compte connecté',
+                `Bienvenue ${user.name}, nous sommes heureux de vous revoir 🤝!`,
+                5000,
+                '1'
+            );
+
+            localStorage.setItem('nu', user.name);
         
-        router.push({ name: 'dashboard' });
+            router.push({ name: 'dashboard' });
 
-      } else if (res.data.info) {
-        showToast('info', 'Informations', res.data.message);
-      } else if (res.data.warn) {
-        showToast('warn', 'Alerte', res.data.message);
-      } else {
-        showToast('error', 'Erreur', res.data.message || 'Erreur inconnue');
-      }
-    } catch (err) {
-      showToast('error', 'Erreur', err.message || 'Erreur inattendue');
-    } finally {
-      loading.value = false;
+        } else if (res.data.info) {
+            showToast('info', 'Informations', res.data.message);
+        } else if (res.data.warn) {
+            showToast('warn', 'Alerte', res.data.message);
+        } else {
+            showToast('error', 'Erreur', res.data.message || 'Erreur inconnue');
+        }
+    } 
+    catch (err) {
+        showToast('error', 'Erreur', err.message);
+    } 
+    finally {
+        loading.value = false;
+        submitting = false;   // 🔥 permet à nouveau un clic, mais jamais double
     }
 };
 

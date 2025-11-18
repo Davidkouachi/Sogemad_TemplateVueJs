@@ -1,15 +1,3 @@
-<script setup>
-import { ref } from 'vue';
-
-const dropdownItems = ref([
-    { name: 'Option 1', code: 'Option 1' },
-    { name: 'Option 2', code: 'Option 2' },
-    { name: 'Option 3', code: 'Option 3' }
-]);
-
-const dropdownItem = ref(null);
-</script>
-
 <template>
     <Fluid>
         <div class="flex flex-col md:flex-row gap-8">
@@ -119,3 +107,15 @@ const dropdownItem = ref(null);
         </div>
     </Fluid>
 </template>
+
+<script setup>
+import { ref } from 'vue';
+
+const dropdownItems = ref([
+    { name: 'Option 1', code: 'Option 1' },
+    { name: 'Option 2', code: 'Option 2' },
+    { name: 'Option 3', code: 'Option 3' }
+]);
+
+const dropdownItem = ref(null);
+</script>

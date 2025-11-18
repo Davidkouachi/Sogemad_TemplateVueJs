@@ -23,6 +23,9 @@ const appChildren = [
     { path: '/pages/empty', name: 'empty', component: () => import('@/views/pages/Empty.vue'), meta: { title: 'Page', requiresAuth: true } },
     { path: '/pages/crud', name: 'crud', component: () => import('@/views/pages/Crud.vue'), meta: { title: 'Page', requiresAuth: true } },
     { path: '/documentation', name: 'documentation', component: () => import('@/views/pages/Documentation.vue'), meta: { title: 'Page', requiresAuth: true } },
+
+    { path: '/Nouvel_utilisateur', name: 'Nouvel_utilisateur', component: () => import('@/views/pages/new/newUser.vue'), meta: { title: 'Nouvel utilisateur', requiresAuth: true } },
+    { path: '/List_utilisateur', name: 'List_utilisateur', component: () => import('@/views/pages/new/listUser.vue'), meta: { title: 'Liste des utilisateur', requiresAuth: true } },
 ];
 
 // Routes principales

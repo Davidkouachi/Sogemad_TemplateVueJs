@@ -9,6 +9,13 @@ const model = ref([
         items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', permissions: ['admin', 'user'], }]
     },
     {
+        label: 'Personnel',
+        items: [
+            { label: 'Nouvel utilisateur', icon: 'pi pi-plus', to: '/Nouvel_utilisateur', permissions: ['admin', 'user'], },
+            { label: 'Liste utilisateur', icon: 'pi pi-list', to: '/List_utilisateur', permissions: ['admin', 'user'], },
+        ]
+    },
+    {
         label: 'UI Components',
         items: [
             { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout',permissions: ['admin', 'user'], },

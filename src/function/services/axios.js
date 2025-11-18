@@ -3,6 +3,7 @@ import { useAuthStore } from "@/function/stores/auth";
 import { getSecureItem } from "@/function/stores/secureStorage";
 
 axios.defaults.baseURL = "http://127.0.0.1:8000";
+// axios.defaults.baseURL = "http://192.168.1.2:8000";
 axios.defaults.headers.common["Accept"] = "application/json";
 
 let isRefreshing = false;
@@ -54,6 +55,8 @@ axios.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (auth.isLoggingOut) return Promise.reject(error);
+
     // --- Cas 401 : access token expiré ---
     if (error.response?.status === 401 && !originalRequest._retry) {
       
@@ -83,9 +86,7 @@ axios.interceptors.response.use(
         }
 
         // 🔄 On appelle ta méthode qui fait la requête /api/refresh
-        const res = await auth.refreshAccessToken();
-
-        const newToken = auth.token;
+        const newToken = await auth.refreshAccessToken();
 
         // Mise à jour des headers
         axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;

@@ -15,10 +15,12 @@ export const useAuthStore = defineStore("auth", {
     tempsRestant: ref(0),
     token: null,
     refreshToken: null,
-    manualLogout: false,
     inactivityRestant: ref(inactivityMin * 60),
     inactivityExpireAt: null,
     _refreshing: false,
+
+    manualLogout: false,
+    isLoggingOut: false,
 
     presite: false,
   }),
@@ -92,12 +94,6 @@ export const useAuthStore = defineStore("auth", {
 
     // ------------------------------------------------------
     async refreshAccessToken() {
-      if (!this.refreshToken) {
-        this.logoutLocal();
-        router.push({ name: "Authentification" });
-      }
-      console.log("⏳ Refresh token automatique lancé");
-
       try {
         const res = await axios.post(
           "/api/refresh",
@@ -120,12 +116,13 @@ export const useAuthStore = defineStore("auth", {
         setSecureItem("session_expired", "false");
 
         axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
-        console.log("✅ Token rafraîchi automatiquement");
 
         this.startCountdown();
+
+        return newToken;   // <-- 🔥 OBLIGATOIRE
       } catch (err) {
-        console.error("❌ Erreur refresh token :", err);
         this.setExpired();
+        throw err;         // <-- IMPORTANT pour axios
       }
     },
 
@@ -205,6 +202,9 @@ export const useAuthStore = defineStore("auth", {
 
     // ------------------------------------------------------
     logoutLocal(expired = false) {
+      if (this.isLoggingOut) return;
+      this.isLoggingOut = true;
+
       this.clearInactivityTimer();
       clearInterval(countdownInterval);
 
@@ -221,31 +221,55 @@ export const useAuthStore = defineStore("auth", {
       removeSecureItem("session_expire");
       removeSecureItem("presite");
 
-      setSecureItem("session_expired", "true");
-
       delete axios.defaults.headers.common["Authorization"];
 
+      // Empêche axios d'intercepter et de relancer un logout
+      axios.interceptors.request.use(
+        config => {
+          config.headers.Authorization = "";
+          return config;
+        }
+      );
+
       if (expired === true) {
-        router.push({ name: "Authentification" });
+        router.push({ name: "Authentification" }).finally(() => {
+          this.isLoggingOut = false;   // <-- RELAXED APRÈS navigation
+        });
+      } else {
+        this.isLoggingOut = false;
       }
     },
 
     // ------------------------------------------------------
     async logoutServer(manuel = true) {
-      if (!this.refreshToken) return this.logoutLocal();
+
+      if (this.isLoggingOut) return;
+      this.isLoggingOut = true;
+
+      if (!this.refreshToken) {
+        this.logoutLocal();
+        this.isLoggingOut = false;
+        return;
+      }
+
       try {
         this.manualLogout = manuel;
+
         await axios.post("/api/logout", { refresh_token: this.refreshToken });
+
         this.expired = manuel;
         removeSecureItem("jwt_token");
         removeSecureItem("refresh_token");
-        console.log("User déconnecté automatiquement côté backend");
+
+        console.log("User déconnecté backend");
       } catch (_) {}
 
       if (manuel === true) {
         this.logoutLocal();
         router.push({ name: "Authentification" });
       }
+
+      this.isLoggingOut = false;
     },
 
     // ------------------------------------------------------

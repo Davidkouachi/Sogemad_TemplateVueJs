@@ -5,16 +5,10 @@ export const usePreloaderSpinner = defineStore('preloaderSpinner', () => {
   const loadingSpiner = ref(false);
   const messageSpiner = ref('');
 
-  function showSpiner(msg = 'Chargement...', callback, delay = 1000) {
+  function showSpiner(msg = 'Chargement...', callback) {
     messageSpiner.value = msg;
     loadingSpiner.value = true;
-
-    if (callback) {
-      setTimeout(() => {
-        callback();
-        // hideSpiner();
-      }, delay);
-    }
+    callback();
   }
 
   function hideSpiner() {

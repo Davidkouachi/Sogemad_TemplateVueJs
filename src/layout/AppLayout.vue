@@ -9,16 +9,7 @@
             />
             <p class="preloaderS-message">{{ preloaderSpinner.messageSpiner }}</p>
         </div>
-        <Dialog :header="confirmDialog.headerDialog" v-model:visible="confirmDialog.loadingDialog" :style="{ width: confirmDialog.widthDialog }" :modal="true" >
-            <div class="flex items-center justify-left">
-                <i :class="confirmDialog.iconDialog" class="mr-4" style="font-size: 2rem"></i>
-                <span>{{ confirmDialog.messageDialog }}</span>
-            </div>
-            <template #footer>
-                <Button label="Non" icon="pi pi-times" text severity="secondary" @click="confirmDialog.hideDialog()" />
-                <Button label="Oui" icon="pi pi-check" severity="danger" autofocus @click="confirmDialog.confirmDialog()" />
-            </template>
-        </Dialog>
+        <ConfirmDialog group="positioned"></ConfirmDialog>
         <app-topbar></app-topbar>
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
@@ -47,9 +38,7 @@
 
 <script setup>
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
-import { useConfirmDialog } from '@/function/stores/confirmDialog';
 import { useLayout } from '@/layout/composables/layout';
-import { onPresetChange }  from './composables/AppConfigurator.js';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
@@ -69,9 +58,6 @@ const { showSwal } = useSwalAlert();
 const { removeAllToasts } = useToastAlert();
 const preloader = usePreloaderStore();
 const preloaderSpinner = usePreloaderSpinner();
-const confirmDialog = useConfirmDialog();
-
-onPresetChange();
 
 let swalShown = false;
 
@@ -106,7 +92,7 @@ watch(isSidebarActive, (newVal) => {
 watch(
   () => auth.expired,
   async (val) => {
-    if (!val || swalShown || auth.manualLogout) return;
+    if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
     swalShown = true;
 
     auth.logoutServer(false)
@@ -124,7 +110,7 @@ watch(
         removeAllToasts();
         preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
             auth.logoutLocal(true);
-        }, 1500);
+        });
     }
 
     swalShown = false;
@@ -199,7 +185,6 @@ function isOutsideClicked(event) {
 .loader-overlay {
   position: absolute;
   inset: 0;
-  backdrop-filter: blur(2px);
   /* background: rgba(255, 255, 255, 0.5); optionnel pour mieux voir le loader */
 }
 
@@ -248,7 +233,6 @@ function isOutsideClicked(event) {
 }
 .preloaderS-message {
   margin-top: 1rem;
-  color: blue;
   font-size: 1.2rem;
   font-weight: 500;
 }

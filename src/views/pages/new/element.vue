@@ -1,4 +1,3 @@
-
 <template>
     <ConfirmDialog group="headless" :style="{ width: '25rem' }">
         <template #container="{ message, acceptCallback, rejectCallback }">
@@ -59,7 +58,7 @@
     </div>
     <div class="card flex flex-wrap justify-center items-stretch gap-4">
         <FloatLabel class="w-full md:w-80" variant="in">
-            <Select v-model="value2" inputId="in_label" :options="cities2" optionLabel="name" class="w-full" variant="filled" filter/>
+            <Select v-model="value2" inputId="in_label" :options="cities2" optionLabel="name" class="w-full" variant="filled" filter />
             <label for="in_label">In Label</label>
         </FloatLabel>
     </div>
@@ -130,8 +129,7 @@
         </IftaLabel>
     </div>
     <div class="card flex justify-center">
-        <ToggleButton v-model="checked" onLabel="Locked" offLabel="Unlocked" onIcon="pi pi-lock" 
-            offIcon="pi pi-lock-open" class="w-36" aria-label="Do you confirm" />
+        <ToggleButton v-model="checked" onLabel="Locked" offLabel="Unlocked" onIcon="pi pi-lock" offIcon="pi pi-lock-open" class="w-36" aria-label="Do you confirm" />
     </div>
     <div class="card flex justify-center">
         <ToggleSwitch v-model="checkedBtn">
@@ -418,82 +416,411 @@
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
         </Drawer>
     </div>
-
     <div class="card">
-        <FileUpload
-    name="demo[]"
-    url="/api/upload"
-    @upload="onTemplatedUpload"
-    :multiple="true"
-    accept="image/*"
-    :maxFileSize="MAX_FILE_SIZE"
-    @select="onSelectedFiles"
-    :fileLimit="20"
-  >
-    <template #header="{ chooseCallback, uploadCallback, clearCallback, files: headerFiles }">
-      <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
-        <div class="flex gap-2">
-          <Button @click="chooseCallback()" label="Choisir" icon="pi pi-images" rounded />
-          <Button @click="clearCallback(); onClearTemplatingUpload(clearCallback)" label="Tout supprimer"
-                  icon="pi pi-times" rounded severity="danger"
-                  :disabled="!headerFiles || headerFiles.length === 0"/>
-        </div>
+        <FileUpload name="demo[]" url="/api/upload" @upload="onTemplatedUpload" :multiple="true" accept="image/*" :maxFileSize="MAX_FILE_SIZE" @select="onSelectedFiles" :fileLimit="20">
+            <template #header="{ chooseCallback, uploadCallback, clearCallback, files: headerFiles }">
+                <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+                    <div class="flex gap-2">
+                        <Button @click="chooseCallback()" label="Choisir" icon="pi pi-images" rounded />
+                        <Button
+                            @click="
+                                clearCallback();
+                                onClearTemplatingUpload(clearCallback);
+                            "
+                            label="Tout supprimer"
+                            icon="pi pi-times"
+                            rounded
+                            severity="danger"
+                            :disabled="!headerFiles || headerFiles.length === 0"
+                        />
+                    </div>
 
-        <!-- PROGRESSBAR -->
-        <ProgressBar :value="totalSizePercent" :showValue="true" class="md:w-20rem w-full md:ml-auto h-1">
-          <span>{{ formatSize(totalBytes) }} / 1 MB</span>
-        </ProgressBar>
-      </div>
-    </template>
+                    <!-- PROGRESSBAR -->
+                    <ProgressBar :value="totalSizePercent" :showValue="true" class="md:w-20rem w-full md:ml-auto h-1">
+                        <span>{{ formatSize(totalBytes) }} / 1 MB</span>
+                    </ProgressBar>
+                </div>
+            </template>
 
-    <template #content="{ files: contentFiles, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
-      <div class="flex flex-col gap-8 pt-4">
+            <template #content="{ files: contentFiles, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
+                <div class="flex flex-col gap-8 pt-4">
+                    <!-- PENDING -->
+                    <div v-if="contentFiles.length > 0">
+                        <h5>En attente</h5>
 
-        <!-- PENDING -->
-        <div v-if="contentFiles.length > 0">
-          <h5>En attente</h5>
+                        <div class="flex flex-wrap gap-4">
+                            <div v-for="(file, index) in contentFiles" :key="file.name + file.type + file.size" class="p-8 rounded-border flex flex-col border border-surface items-center gap-4">
+                                <img :src="file.objectURL" width="100" height="50" />
+                                <span class="font-semibold max-w-60 text-ellipsis overflow-hidden">{{ file.name }}</span>
+                                <div>{{ formatSize(file.size) }}</div>
 
-          <div class="flex flex-wrap gap-4">
-            <div
-              v-for="(file, index) in contentFiles"
-              :key="file.name + file.type + file.size"
-              class="p-8 rounded-border flex flex-col border border-surface items-center gap-4"
-            >
-              <img :src="file.objectURL" width="100" height="50" />
-              <span class="font-semibold max-w-60 text-ellipsis overflow-hidden">{{ file.name }}</span>
-              <div>{{ formatSize(file.size) }}</div>
+                                <!-- <Badge size="large" value="Vérifier" severity="success"/> -->
 
-              <!-- <Badge size="large" value="Vérifier" severity="success"/> -->
+                                <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" rounded severity="danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
 
-              <Button
-                icon="pi pi-times"
-                @click="onRemoveTemplatingFile(file, removeFileCallback, index)"
-                rounded severity="danger"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <template #empty>
-      <div class="flex items-center justify-center flex-col">
-        <i class="pi pi-cloud-upload border-2 rounded-full p-8 text-4xl text-muted-color" />
-        <p class="mt-6 mb-0">Glissez des fichiers ici.</p>
-      </div>
-    </template>
-  </FileUpload>
+            <template #empty>
+                <div class="flex items-center justify-center flex-col">
+                    <i class="pi pi-cloud-upload border-2 rounded-full p-8 text-4xl text-muted-color" />
+                    <p class="mt-6 mb-0">Glissez des fichiers ici.</p>
+                </div>
+            </template>
+        </FileUpload>
     </div>
-
     <div class="card flex flex-col items-center gap-6">
         <FileUpload mode="basic" @select="onFileSelect" customUpload auto severity="secondary" class="p-button-outlined" />
         <img v-if="src" :src="src" alt="Image" class="shadow-md rounded-xl w-full sm:w-64" style="filter: grayscale(100%)" />
+    </div>
+    <div class="card flex flex-col items-center justify-center">
+        <Button label="Show" @click="showMessage" :disabled="visible" class="mb-4" />
+        <Message v-if="visibleMessage" severity="success" :life="3000">Auto Disappear Message</Message>
+    </div>
+    <div class="card flex flex-wrap gap-8">
+        <div class="flex-auto">
+            <h5>Label</h5>
+            <Avatar label="P" class="mr-2" size="xlarge" />
+            <Avatar label="V" class="mr-2" size="large" style="background-color: #ece9fc; color: #2a1261" />
+            <Avatar label="U" class="mr-2" style="background-color: #dee9fc; color: #1a2551" />
+        </div>
+
+        <div class="flex-auto">
+            <h5>Circle</h5>
+            <Avatar label="P" class="mr-2" size="xlarge" shape="circle" />
+            <Avatar label="V" class="mr-2" size="large" style="background-color: #ece9fc; color: #2a1261" shape="circle" />
+            <Avatar label="U" class="mr-2" style="background-color: #dee9fc; color: #1a2551" shape="circle" />
+        </div>
+
+        <div class="flex-auto">
+            <h5>Badge</h5>
+            <OverlayBadge value="4" severity="danger" class="inline-flex">
+                <Avatar label="U" size="xlarge" />
+            </OverlayBadge>
+        </div>
+    </div>
+    <div class="card">
+        <div class="flex flex-wrap gap-8">
+            <div class="flex-auto">
+                <h5>Icon</h5>
+                <Avatar icon="pi pi-user" class="mr-2" size="xlarge" />
+                <Avatar icon="pi pi-user" class="mr-2" size="large" style="background-color: #ece9fc; color: #2a1261" />
+                <Avatar icon="pi pi-user" style="background-color: #dee9fc; color: #1a2551" />
+            </div>
+
+            <div class="flex-auto">
+                <h5>Circle</h5>
+                <Avatar icon="pi pi-user" class="mr-2" size="xlarge" shape="circle" />
+                <Avatar icon="pi pi-user" class="mr-2" size="large" style="background-color: #ece9fc; color: #2a1261" shape="circle" />
+                <Avatar icon="pi pi-user" style="background-color: #dee9fc; color: #1a2551" shape="circle" />
+            </div>
+
+            <div class="flex-auto">
+                <h5>Badge</h5>
+                <OverlayBadge value="4" severity="danger" class="inline-flex">
+                    <Avatar icon="pi pi-user" size="xlarge" />
+                </OverlayBadge>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="flex flex-wrap gap-8">
+            <div class="flex-auto">
+                <h5>Image</h5>
+                <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" class="mr-2" size="xlarge" shape="circle" />
+                <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/asiyajavayant.png" class="mr-2" size="large" shape="circle" />
+                <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png" shape="circle" />
+            </div>
+
+            <div class="flex-auto">
+                <h5>Badge</h5>
+                <OverlayBadge value="4" severity="danger" class="inline-flex">
+                    <Avatar class="p-overlay-badge" image="https://primefaces.org/cdn/primevue/images/organization/walter.jpg" size="xlarge" />
+                </OverlayBadge>
+            </div>
+
+            <div class="flex-auto">
+                <h5>Gravatar</h5>
+                <Avatar image="https://www.gravatar.com/avatar/05dfd4b41340d09cae045235eb0893c3?d=mp" class="flex items-center justify-center mr-2" size="xlarge" />
+            </div>
+        </div>
+    </div>
+    <div class="card flex justify-center">
+        <AvatarGroup>
+            <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" />
+            <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/asiyajavayant.png" shape="circle" />
+            <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png" shape="circle" />
+            <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/ionibowcher.png" shape="circle" />
+            <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/xuxuefeng.png" shape="circle" />
+            <Avatar label="+2" shape="circle" />
+        </AvatarGroup>
+    </div>
+    <div class="card flex flex-wrap justify-center gap-6">
+        <OverlayBadge value="2">
+            <i class="pi pi-bell" style="font-size: 2rem" />
+        </OverlayBadge>
+        <OverlayBadge value="4" severity="danger">
+            <i class="pi pi-calendar" style="font-size: 2rem" />
+        </OverlayBadge>
+        <OverlayBadge severity="danger">
+            <i class="pi pi-envelope" style="font-size: 2rem" />
+        </OverlayBadge>
+    </div>
+    <div class="card flex justify-center flex-wrap gap-4">
+        <Button type="button" label="Notifications" icon="pi pi-bell" badge="2" />
+        <Button type="button" label="Inbox" icon="pi pi-inbox" badge="2" badgeSeverity="contrast" variant="outlined" />
+    </div>
+    <div class="card flex flex-wrap justify-center gap-2">
+        <Badge value="2"></Badge>
+        <Badge value="6" severity="secondary"></Badge>
+        <Badge value="8" severity="success"></Badge>
+        <Badge value="4" severity="info"></Badge>
+        <Badge value="9" severity="warn"></Badge>
+        <Badge value="3" severity="danger"></Badge>
+        <Badge value="5" severity="contrast"></Badge>
+    </div>
+    <div class="card flex flex-wrap justify-center items-end gap-2">
+        <Badge value="8" size="xlarge" severity="success"></Badge>
+        <Badge value="6" size="large" severity="warn"></Badge>
+        <Badge value="4" severity="info"></Badge>
+        <Badge value="2" size="small"></Badge>
+    </div>
+    <div class="card flex flex-wrap gap-2">
+        <Chip label="Apple" icon="pi pi-apple" />
+        <Chip label="Facebook" icon="pi pi-facebook" />
+        <Chip label="Google" icon="pi pi-google" />
+        <Chip label="Microsoft" icon="pi pi-microsoft" removable />
+        <Chip label="GitHub" icon="pi pi-github" removable>
+            <template #removeicon="{ removeCallback, keydownCallback }">
+                <i class="pi pi-minus-circle" @click="removeCallback" @keydown="keydownCallback" />
+            </template>
+        </Chip>
+    </div>
+    <!-- <div class="card flex flex-wrap gap-2">
+        <Chip label="Amy Elsner" image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" />
+        <Chip label="Asiya Javayant" image=https://primefaces.org/cdn/primevue"/images/avatar/asiyajavayant.png" />
+        <Chip label="Onyama Limba" image="https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png" />
+        <Chip label="Xuxue Feng" image="https://primefaces.org/cdn/primevue/images/avatar/xuxuefeng.png" removable />
+    </div> -->
+    <div class="card">
+        <Chip class="py-0 pl-0 pr-4">
+            <span class="bg-primary text-primary-contrast rounded-full w-8 h-8 flex items-center justify-center">P</span>
+            <span class="ml-2 font-medium">PRIME</span>
+        </Chip>
+    </div>
+    <div class="card">
+        <MeterGroup :value="valueMetric" labelPosition="start">
+            <template #label="{ value }">
+                <div class="flex flex-wrap gap-4">
+                    <template v-for="val of value">
+                    <!-- <template v-for="val of value" :key="i"> -->
+                        <Card class="flex-1 border border-surface shadow-none">
+                            <template #content>
+                                <div class="flex justify-between gap-8">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-surface-500 dark:text-surface-400 text-sm">{{ val.label }}</span>
+                                        <span class="font-bold text-lg">{{ val.value }}%</span>
+                                    </div>
+                                    <span class="w-8 h-8 rounded-full inline-flex justify-center items-center text-center" :style="{ backgroundColor: `${val.color1}`, color: '#ffffff' }">
+                                        <i :class="val.icon" />
+                                    </span>
+                                </div>
+                            </template>
+                        </Card>
+                    </template>
+                </div>
+            </template>
+            <template #meter="slotProps">
+                <span :class="slotProps.class" :style="{ background: `linear-gradient(to right, ${slotProps.value.color1}, ${slotProps.value.color2})`, width: slotProps.size }" />
+            </template>
+            <template #start="{ totalPercent }">
+                <div class="flex justify-between mt-4 mb-2 relative">
+                    <span>Storage</span>
+                    <span :style="{ width: totalPercent + '%' }" class="absolute text-right">{{ totalPercent }}%</span>
+                    <span class="font-medium">1TB</span>
+                </div>
+            </template>
+            <template #end>
+                <div class="flex justify-between mt-4">
+                    <Button label="Manage Storage" variant="outlined" size="small" />
+                    <Button label="Update Plan" size="small" />
+                </div>
+            </template>
+        </MeterGroup>
+    </div>
+    <div class="card">
+        <ProgressBar mode="indeterminate" style="height: 6px"></ProgressBar>
+    </div>
+    <div class="card flex justify-center">
+        <ScrollPanel style="width: 250px; height: 200px">
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vitae et leo duis ut diam. Ultricies mi quis hendrerit dolor magna eget est lorem. Amet consectetur adipiscing
+                elit ut. Nam libero justo laoreet sit amet. Pharetra massa massa ultricies mi quis hendrerit dolor magna. Est ultricies integer quis auctor elit sed vulputate. Consequat ac felis donec et. Tellus orci ac auctor augue mauris. Semper
+                feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Tincidunt arcu non sodales neque sodales. Metus aliquam eleifend mi in nulla posuere sollicitudin aliquam ultrices. Sodales ut etiam sit amet nisl purus. Cursus sit amet
+                dictum sit amet. Tristique senectus et netus et malesuada fames ac turpis egestas. Et tortor consequat id porta nibh venenatis cras sed. Diam maecenas ultricies mi eget mauris. Eget egestas purus viverra accumsan in nisl nisi.
+                Suscipit adipiscing bibendum est ultricies integer. Mattis aliquam faucibus purus in massa tempor nec.
+            </p>
+            <ScrollTop target="parent" :threshold="100" icon="pi pi-arrow-up" :buttonProps="{ severity: 'contrast', raised: true, rounded: true }" />
+        </ScrollPanel>
+    </div>
+    <div class="card">
+        <div class="flex flex-wrap">
+            <div class="w-full xl:w-6/12 p-4">
+                <h5>Rectangle</h5>
+                <Skeleton class="mb-2"></Skeleton>
+                <Skeleton width="10rem" class="mb-2"></Skeleton>
+                <Skeleton width="5rem" class="mb-2"></Skeleton>
+                <Skeleton height="2rem" class="mb-2"></Skeleton>
+                <Skeleton width="10rem" height="4rem"></Skeleton>
+            </div>
+            <div class="w-full xl:w-6/12 p-4">
+                <h5>Rounded</h5>
+                <Skeleton class="mb-2" borderRadius="16px"></Skeleton>
+                <Skeleton width="10rem" class="mb-2" borderRadius="16px"></Skeleton>
+                <Skeleton width="5rem" borderRadius="16px" class="mb-2"></Skeleton>
+                <Skeleton height="2rem" class="mb-2" borderRadius="16px"></Skeleton>
+                <Skeleton width="10rem" height="4rem" borderRadius="16px"></Skeleton>
+            </div>
+            <div class="w-full xl:w-6/12 p-4">
+                <h5 class="mt-4">Square</h5>
+                <div class="flex items-end">
+                    <Skeleton size="2rem" class="mr-2"></Skeleton>
+                    <Skeleton size="3rem" class="mr-2"></Skeleton>
+                    <Skeleton size="4rem" class="mr-2"></Skeleton>
+                    <Skeleton size="5rem"></Skeleton>
+                </div>
+            </div>
+            <div class="w-full xl:w-6/12 p-4">
+                <h5 class="mt-4">Circle</h5>
+                <div class="flex items-end">
+                    <Skeleton shape="circle" size="2rem" class="mr-2"></Skeleton>
+                    <Skeleton shape="circle" size="3rem" class="mr-2"></Skeleton>
+                    <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
+                    <Skeleton shape="circle" size="5rem"></Skeleton>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="rounded border border-surface-200 dark:border-surface-700 p-6 bg-surface-0 dark:bg-surface-900">
+            <div class="flex mb-4">
+                <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
+                <div>
+                    <Skeleton width="10rem" class="mb-2"></Skeleton>
+                    <Skeleton width="5rem" class="mb-2"></Skeleton>
+                    <Skeleton height=".5rem"></Skeleton>
+                </div>
+            </div>
+            <Skeleton width="100%" height="150px"></Skeleton>
+            <div class="flex justify-between mt-4">
+                <Skeleton width="4rem" height="2rem"></Skeleton>
+                <Skeleton width="4rem" height="2rem"></Skeleton>
+            </div>
+        </div>
+    </div>
+    <div class="card rounded border border-surface-200 dark:border-surface-700 p-6 bg-surface-0 dark:bg-surface-900">
+        <ul class="m-0 p-0 list-none">
+            <li class="mb-4">
+                <div class="flex">
+                    <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
+                    <div class="self-center" style="flex: 1">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="75%"></Skeleton>
+                    </div>
+                </div>
+            </li>
+            <li class="mb-4">
+                <div class="flex">
+                    <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
+                    <div class="self-center" style="flex: 1">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="75%"></Skeleton>
+                    </div>
+                </div>
+            </li>
+            <li class="mb-4">
+                <div class="flex">
+                    <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
+                    <div class="self-center" style="flex: 1">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="75%"></Skeleton>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="flex">
+                    <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
+                    <div class="self-center" style="flex: 1">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="75%"></Skeleton>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="card">
+        <DataTable :value="products">
+            <Column field="code" header="Code">
+                <template #body>
+                    <Skeleton></Skeleton>
+                </template>
+            </Column>
+            <Column field="name" header="Name">
+                <template #body>
+                    <Skeleton></Skeleton>
+                </template>
+            </Column>
+            <Column field="category" header="Category">
+                <template #body>
+                    <Skeleton></Skeleton>
+                </template>
+            </Column>
+            <Column field="quantity" header="Quantity">
+                <template #body>
+                    <Skeleton></Skeleton>
+                </template>
+            </Column>
+        </DataTable>
+    </div>
+    <div class="card flex flex-wrap justify-center gap-2">
+        <Tag value="Primary"></Tag>
+        <Tag severity="secondary" value="Secondary"></Tag>
+        <Tag severity="success" value="Success"></Tag>
+        <Tag severity="info" value="Info"></Tag>
+        <Tag severity="warn" value="Warn"></Tag>
+        <Tag severity="danger" value="Danger"></Tag>
+        <Tag severity="contrast" value="Contrast"></Tag>
+    </div>
+    <div class="card flex justify-center">
+        <div v-if="visibleHeadless" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-999">
+        </div>
+        <Toast position="top-center" group="headless" @close="visibleHeadless = false" class="z-100">
+            <template #container="{ message, closeCallback }">
+                <section class="flex flex-col p-4 gap-4 w-full bg-primary/70 rounded-xl">
+                    <div class="flex items-center gap-5">
+                        <i class="pi pi-cloud-upload text-white dark:text-black text-2xl"></i>
+                        <span class="font-bold text-base text-white dark:text-black">{{ message.summary }}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <ProgressBar :value="progressHeadless" :showValue="false" :style="{ height: '4px' }" pt:value:class="!bg-primary-50 dark:!bg-primary-900" class="!bg-primary/80"></ProgressBar>
+                        <label class="text-sm font-bold text-white dark:text-black">{{ progressHeadless }}% uploaded</label>
+                    </div>
+                    <div class="flex gap-4 mb-4 justify-end">
+                        <Button label="Another Upload?" size="small" @click="closeCallback"></Button>
+                        <Button label="Cancel" size="small" @click="closeCallback"></Button>
+                    </div>
+                </section>
+            </template>
+        </Toast>
+        <Button @click="showHeadless" label="View" />
     </div>
 </template>
 
 <script setup>
 import FileUpload from 'primevue/fileupload';
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { usePrimeVue } from 'primevue/config';
@@ -501,7 +828,7 @@ import { usePrimeVue } from 'primevue/config';
 const confirm = useConfirm();
 const toast = useToast();
 const $primevue = usePrimeVue();
-
+// --------------------------------------------------------------
 const requireConfirmation = () => {
     confirm.require({
         group: 'headless',
@@ -515,9 +842,9 @@ const requireConfirmation = () => {
         }
     });
 };
-
+// --------------------------------------------------------------
 const visible = ref(false);
-
+// --------------------------------------------------------------
 const value1 = ref(null);
 const cities = ref([
     { name: 'New York', code: 'NY' },
@@ -526,7 +853,7 @@ const cities = ref([
     { name: 'Istanbul', code: 'IST' },
     { name: 'Paris', code: 'PRS' }
 ]);
-
+// --------------------------------------------------------------
 const value2 = ref(null);
 const cities2 = ref([
     { name: 'New York', code: 'NY' },
@@ -535,7 +862,7 @@ const cities2 = ref([
     { name: 'Istanbul', code: 'IST' },
     { name: 'Paris', code: 'PRS' }
 ]);
-
+// --------------------------------------------------------------
 const selectedCountry = ref();
 const countries = ref([
     { name: 'Australia', code: 'AU' },
@@ -549,31 +876,31 @@ const countries = ref([
     { name: 'Spain', code: 'ES' },
     { name: 'United States', code: 'US' }
 ]);
-
+// --------------------------------------------------------------
 const ingredient = ref('');
-
+// --------------------------------------------------------------
 const Textarea1 = ref('');
 const Textarea2 = ref('');
 const Textarea3 = ref('');
-
+// --------------------------------------------------------------
 const checked = ref(false);
-
+// --------------------------------------------------------------
 const checkedBtn = ref(false);
-
+// --------------------------------------------------------------
 const events = ref([
     { status: 'Ordered', date: '15/10/2020 10:30', icon: 'pi pi-shopping-cart', color: '#9C27B0', image: 'game-controller.jpg' },
     { status: 'Processing', date: '15/10/2020 14:00', icon: 'pi pi-cog', color: '#673AB7' },
     { status: 'Shipped', date: '15/10/2020 16:15', icon: 'pi pi-shopping-cart', color: '#FF9800' },
     { status: 'Delivered', date: '16/10/2020 10:00', icon: 'pi pi-check', color: '#607D8B' }
 ]);
-
+// --------------------------------------------------------------
 const events2 = ref([
     { status: 'Ordered', date: '15/10/2020 10:30', icon: 'pi pi-shopping-cart', color: '#9C27B0'},
     { status: 'Processing', date: '15/10/2020 14:00', icon: 'pi pi-cog', color: '#673AB7' },
     { status: 'Shipped', date: '15/10/2020 16:15', icon: 'pi pi-shopping-cart', color: '#FF9800' },
     { status: 'Delivered', date: '16/10/2020 10:00', icon: 'pi pi-check', color: '#607D8B' }
 ]);
-
+// --------------------------------------------------------------
 const visibleLeft = ref(false);
 const visibleRight = ref(false);
 const visibleTop = ref(false);
@@ -581,22 +908,18 @@ const visibleBottom = ref(false);
 const visibleFull = ref(false);
 const visibleLogin = ref(false);
 const visibleMenu = ref(false);
-
+// --------------------------------------------------------------
 const MAX_TOTAL_SIZE = 1024 * 1024; // 1 MB réel
 const MAX_FILE_SIZE = 1024 * 1024;  // idem
 const files = ref([]);        // fichiers sélectionnés
 const totalBytes = ref(0);    // taille totale en octets
-
 const totalSizePercent = computed(() =>
   Math.min(100, (totalBytes.value / MAX_TOTAL_SIZE) * 100)
 );
-
 const formatSize = (bytes) => (bytes / 1024 / 1024).toFixed(2) + " MB";
-
 const recalcTotalSize = () => {
   totalBytes.value = files.value.reduce((sum, f) => sum + f.size, 0);
 };
-
 const onSelectedFiles = (event) => {
   // fichiers nouvellement sélectionnés seulement
   const incomingFiles = event.originalEvent?.target?.files || [];
@@ -656,25 +979,20 @@ const onSelectedFiles = (event) => {
         life: 6000,
       });
     }
-
-};
-    
+};   
 const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
   removeFileCallback(index);       // PrimeVue supprime le fichier interne
   files.value.splice(index, 1);    // supprime aussi du tableau local
   recalcTotalSize();               // recalcul exact de la taille
 };
-
 const onClearTemplatingUpload = (clear) => {
   clear();          // PrimeVue supprime tout
   files.value = [];  // réinitialiser le tableau local
   totalBytes.value = 0;
 };
-
 const uploadEvent = (callback) => {
   callback();
 };
-
 const onTemplatedUpload = () => {
   toast.add({
     severity: "success",
@@ -683,9 +1001,8 @@ const onTemplatedUpload = () => {
     life: 3000,
   });
 };
-
+// --------------------------------------------------------------
 const src = ref(null);
-
 function onFileSelect(event) {
     const file = event.files[0];
     const reader = new FileReader();
@@ -696,9 +1013,67 @@ function onFileSelect(event) {
 
     reader.readAsDataURL(file);
 }
+// --------------------------------------------------------------
+let visibleMessage = ref(false);
+const showMessage = () => {
+    visibleMessage.value = true;
 
+    setTimeout(() => {
+        visibleMessage.value = false;
+    }, 3500);
+}
+// --------------------------------------------------------------
+const valueMetric = ref([
+    { label: 'Apps', color1: '#34d399', color2: '#fbbf24', value: 25, icon: 'pi pi-table' },
+    { label: 'Messages', color1: '#fbbf24', color2: '#60a5fa', value: 15, icon: 'pi pi-inbox' },
+    { label: 'Media', color1: '#60a5fa', color2: '#c084fc', value: 20, icon: 'pi pi-image' },
+    { label: 'System', color1: '#c084fc', color2: '#c084fc', value: 10, icon: 'pi pi-cog' }
+]);
+// --------------------------------------------------------------
+const products = ref(new Array(4));
+// --------------------------------------------------------------
+const visibleHeadless = ref(false);
+const progressHeadless = ref(0);
+const intervalHeadless = ref();
+const showHeadless = () => {
+    if (!visibleHeadless.value) {
+        toast.add({ severity: 'custom', summary: 'Uploading your files.', group: 'headless', styleClass: 'backdrop-blur-lg rounded-2xl' });
+        visibleHeadless.value = true;
+        progressHeadless.value = 0;
+
+        if (intervalHeadless.value) {
+            clearInterval(intervalHeadless.value);
+        }
+
+        intervalHeadless.value = setInterval(() => {
+            if (progressHeadless.value <= 100) {
+                progressHeadless.value = progressHeadless.value + 20;
+            }
+
+            if (progressHeadless.value >= 100) {
+                progressHeadless.value = 100;
+                clearInterval(intervalHeadless.value);
+            }
+        }, 1000);
+    }
+};
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// --------------------------------------------------------------
 onMounted(() => {
     
+})
+onUnmounted(() => {
+    if (intervalHeadless.value) {
+        clearInterval(intervalHeadless.value);
+    }
 })
 
 </script>

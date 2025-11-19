@@ -26,7 +26,8 @@ const appChildren = [
 
     { path: '/Nouvel_utilisateur', name: 'Nouvel_utilisateur', component: () => import('@/views/pages/new/newUser.vue'), meta: { title: 'Nouvel utilisateur', requiresAuth: true } },
     { path: '/List_utilisateur', name: 'List_utilisateur', component: () => import('@/views/pages/new/listUser.vue'), meta: { title: 'Liste des utilisateur', requiresAuth: true } },
-    { path: '/Select_utilisateur', name: 'Select_utilisateur', component: () => import('@/views/pages/new/selectUser.vue'), meta: { title: 'Select des utilisateur', requiresAuth: true } },
+    { path: '/element_basic', name: 'element_basic', component: () => import('@/views/pages/new/element.vue'), meta: { title: 'Element', requiresAuth: true } },
+    { path: '/element_chart', name: 'element_chart', component: () => import('@/views/pages/new/graphique.vue'), meta: { title: 'Graphique', requiresAuth: true } },
 ];
 
 // Routes principales

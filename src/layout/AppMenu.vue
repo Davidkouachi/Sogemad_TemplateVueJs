@@ -13,7 +13,14 @@ const model = ref([
         items: [
             { label: 'Nouvel utilisateur', icon: 'pi pi-plus', to: '/Nouvel_utilisateur', permissions: ['admin', 'user'], },
             { label: 'Liste utilisateur', icon: 'pi pi-list', to: '/List_utilisateur', permissions: ['admin', 'user'], },
-            { label: 'Select utilisateur', icon: 'pi pi-list', to: '/Select_utilisateur', permissions: ['admin', 'user'], },
+            {
+                label: 'Elements',
+                icon: 'pi pi-fw pi-bookmark',
+                items: [
+                    { label: 'Basic', icon: 'pi pi-list', to: '/element_basic', permissions: ['admin', 'user'], },
+                    { label: 'Graphique', icon: 'pi pi-chart-bar', to: '/element_chart', permissions: ['admin', 'user'], },
+                ]
+            },
         ]
     },
     {

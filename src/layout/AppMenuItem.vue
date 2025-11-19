@@ -31,13 +31,43 @@ const props = defineProps({
 const isActiveMenu = ref(false);
 const itemKey = ref(null);
 
+// onBeforeMount(() => {
+//     itemKey.value = props.parentItemKey ? props.parentItemKey + '-' + props.index : String(props.index);
+
+//     const activeItem = layoutState.activeMenuItem;
+
+//     isActiveMenu.value = activeItem === itemKey.value || activeItem ? activeItem.startsWith(itemKey.value + '-') : false;
+// });
+
 onBeforeMount(() => {
-    itemKey.value = props.parentItemKey ? props.parentItemKey + '-' + props.index : String(props.index);
+    itemKey.value = props.parentItemKey
+        ? props.parentItemKey + '-' + props.index
+        : String(props.index);
 
     const activeItem = layoutState.activeMenuItem;
 
-    isActiveMenu.value = activeItem === itemKey.value || activeItem ? activeItem.startsWith(itemKey.value + '-') : false;
+    // Active normal
+    isActiveMenu.value =
+        activeItem === itemKey.value ||
+        (activeItem ? activeItem.startsWith(itemKey.value + '-') : false);
+
+    // 🔥 Correction : ouvrir automatiquement le menu si la route correspond
+    if (props.item.to && props.item.to === route.path) {
+        setActiveMenuItem(itemKey.value);
+        isActiveMenu.value = true;
+    }
+
+    // 🔥 Correction : si un enfant correspond à la route → ouvrir le parent
+    if (props.item.items) {
+        const hasActiveChild = props.item.items.some(child => child.to === route.path);
+
+        if (hasActiveChild) {
+            setActiveMenuItem(itemKey.value);
+            isActiveMenu.value = true;
+        }
+    }
 });
+
 
 watch(
     () => layoutState.activeMenuItem,

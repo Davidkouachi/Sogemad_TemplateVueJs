@@ -13,6 +13,7 @@ const model = ref([
         items: [
             { label: 'Nouvel utilisateur', icon: 'pi pi-plus', to: '/Nouvel_utilisateur', permissions: ['admin', 'user'], },
             { label: 'Liste utilisateur', icon: 'pi pi-list', to: '/List_utilisateur', permissions: ['admin', 'user'], },
+            { label: 'Select utilisateur', icon: 'pi pi-list', to: '/Select_utilisateur', permissions: ['admin', 'user'], },
         ]
     },
     {

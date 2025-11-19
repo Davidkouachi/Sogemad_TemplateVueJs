@@ -26,6 +26,7 @@ const appChildren = [
 
     { path: '/Nouvel_utilisateur', name: 'Nouvel_utilisateur', component: () => import('@/views/pages/new/newUser.vue'), meta: { title: 'Nouvel utilisateur', requiresAuth: true } },
     { path: '/List_utilisateur', name: 'List_utilisateur', component: () => import('@/views/pages/new/listUser.vue'), meta: { title: 'Liste des utilisateur', requiresAuth: true } },
+    { path: '/Select_utilisateur', name: 'Select_utilisateur', component: () => import('@/views/pages/new/selectUser.vue'), meta: { title: 'Select des utilisateur', requiresAuth: true } },
 ];
 
 // Routes principales

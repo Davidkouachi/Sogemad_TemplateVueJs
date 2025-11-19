@@ -110,10 +110,10 @@ function formatDateHeure(value) {
 
 // Menu actions
 const actionItems = (user) => [
-    { class: 'btn_views', label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
-    { class: 'btn_update', label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
+    { label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
+    { label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
     { separator: true },
-    { class: 'btn_delete', label: 'Supprimer', icon: 'pi pi-trash', command: () => showToast('warn','Supprimer',`Supprimer ${user.name}`) }
+    { label: 'Supprimer', icon: 'pi pi-trash', command: () => showToast('warn','Supprimer',`Supprimer ${user.name}`) }
 ];
 
 onMounted(() => {
@@ -217,16 +217,4 @@ onMounted(() => {
 <style scoped lang="scss">
 :deep(.p-datatable-frozen-tbody) { font-weight: bold; }
 :deep(.p-datatable-scrollable .p-frozen-column) { font-weight: bold; }
-
-.btn-delete {
-  color: red !important;
-  margin: 0.5rem 0.1rem;
-}
-
-.btn-delete:hover {
-  background-color: #ff0028 !important;
-  color: white !important;
-  border-radius: 0.5rem;
-}
-
 </style>

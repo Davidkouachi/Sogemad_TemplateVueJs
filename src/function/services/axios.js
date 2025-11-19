@@ -85,8 +85,11 @@ axios.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        // 🔄 On appelle ta méthode qui fait la requête /api/refresh
-        const newToken = await auth.refreshAccessToken();
+        // 🟡 Rafraîchir le token
+        const res = await auth.refreshAccessToken();
+
+        // ✅ Si le refresh s'est bien passé
+        const newToken = auth.token;
 
         // Mise à jour des headers
         axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;

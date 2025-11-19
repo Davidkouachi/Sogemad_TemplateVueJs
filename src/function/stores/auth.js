@@ -5,7 +5,7 @@ import { ref } from "vue";
 import { setSecureItem, getSecureItem, removeSecureItem } from "@/function/stores/secureStorage";
 
 let countdownInterval = null;
-let inactivityMin = 60;
+let inactivityMin = 30;
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -118,6 +118,7 @@ export const useAuthStore = defineStore("auth", {
         axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
 
         this.startCountdown();
+        console.log('refresh')
 
         return newToken;   // <-- 🔥 OBLIGATOIRE
       } catch (err) {
@@ -143,14 +144,15 @@ export const useAuthStore = defineStore("auth", {
           return;
         }
 
-        if (diff <= 300 && !this._refreshing) {
+        // 🔹 Refresh automatique si < 5 min
+        if (diff <= 60 && !this._refreshing) {
           const stillActive =
             this.inactivityExpireAt && now < this.inactivityExpireAt;
 
           if (stillActive) {
             this._refreshing = true;
-            // await this.refreshAccessToken();
-            // this._refreshing = false;
+            await this.refreshAccessToken();
+            this._refreshing = false;
           } else {
             console.log("⚠️ Token non rafraîchi car inactif");
             this.setExpired();

@@ -23,7 +23,8 @@ const globalFilter = ref('');
 const dt = ref(null); // ref vers le DataTable
 const menuRefs = ref({}); // pour stocker les références des menus par utilisateur
 
-function initFilters() {
+function initFilters(toast) {
+    if(toast) showToast('info', 'Information', 'Rémise à zéro des données du tableau.');
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
@@ -49,6 +50,7 @@ const fetchUsers = async () => {
     } finally {
         loading.value = false;
         await nextTick();
+        initFilters(false)
     }
 };
 
@@ -81,21 +83,43 @@ const handleExportPDF = () => {
     }
 
     preloaderSpinner.showSpiner('Creation du fichier pdf en cours...', () => {
-        pdfListeUser(donnees);
+        setTimeout(() => {
+            pdfListeUser(donnees);
+        }, 200); 
     });
 };
 
+function formatDateHeure(value) {
+    if (!value) return '';
+
+    // Convertit en objet Date même si " " à la place de "T"
+    const date = new Date(value.replace(' ', 'T'));
+
+    if (isNaN(date.getTime())) return value; // si conversion échoue
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${day}/${month}/${year} à ${hours}:${minutes}:${seconds}`;
+}
+
 // Menu actions
 const actionItems = (user) => [
-    { label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
-    { label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
-    { label: 'Supprimer', icon: 'pi pi-trash', command: () => showToast('warn','Supprimer',`Supprimer ${user.name}`) }
+    { class: 'btn_views', label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
+    { class: 'btn_update', label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
+    { separator: true },
+    { class: 'btn_delete', label: 'Supprimer', icon: 'pi pi-trash', command: () => showToast('warn','Supprimer',`Supprimer ${user.name}`) }
 ];
 
 onMounted(() => {
-    initFilters();
     fetchUsers();
 });
+
 </script>
 
 <template>
@@ -108,6 +132,7 @@ onMounted(() => {
         ref="dt"
         :value="users"
         :paginator="true"
+        :rowsPerPageOptions="[5,10,20,50]"
         :rows="10"
         dataKey="id"
         :rowHover="true"
@@ -115,6 +140,8 @@ onMounted(() => {
         filterDisplay="menu"
         :loading="loading"
         :globalFilterFields="['name','email','login']"
+        scrollable
+        scrollHeight="auto"
     >
         <div class="flex justify-center my-4">
             <Chip 
@@ -137,6 +164,7 @@ onMounted(() => {
                 </FloatLabel>
                 <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
                     <Button type="button" icon="pi pi-filter-slash" label="Filtre" @click="initFilters"/>
+                    <Button type="button" icon="pi pi-refresh" label="Actualiser" @click="fetchUsers(true)" severity="warn"/>
                     <Button type="button" icon="pi pi-file-pdf" label="PDF" @click="handleExportPDF" severity="danger"/>
                 </div>
             </div>
@@ -149,7 +177,7 @@ onMounted(() => {
             </div>
         </template>
 
-        <Column field="id" header="ID" style="width:5%" />
+        <Column field="id" header="N°" style="width:5%" />
         <Column field="name" header="Nom" style="min-width: 12rem">
             <template #body="{ data }">
                 <div class="flex items-center gap-2">
@@ -160,11 +188,16 @@ onMounted(() => {
                 </div>
             </template>
         </Column>
-        <Column field="email" header="Email" style="min-width: 20rem" />
-        <Column field="login" header="Login" style="min-width: 15rem" />
+        <Column field="email" header="Email" style="min-width: 10rem" />
+        <Column field="login" header="Login" style="min-width: 10rem" />
+        <Column field="created_at" header="Date de création" style="min-width: 10rem">
+            <template #body="{ data }">
+                {{ formatDateHeure(data.created_at) }}
+            </template>
+        </Column>
         <Column header="Actions" style="width:10%">
             <template #body="{ data }">
-                <SplitButton :model="actionItems(data)" icon="pi pi-setting" label="Actions" class="p-button-sm" />
+                <SplitButton :model="actionItems(data)" icon="" label="Actions" dropdownIcon="pi pi-cog" severity="warn" size="small"/>
             </template>
         </Column>
     </DataTable>
@@ -177,10 +210,23 @@ onMounted(() => {
             <li class="list-group-item"><strong>Login :</strong> {{ userSelected.login }}</li>
         </ul>
     </Dialog>
+
 </div>
 </template>
 
 <style scoped lang="scss">
 :deep(.p-datatable-frozen-tbody) { font-weight: bold; }
 :deep(.p-datatable-scrollable .p-frozen-column) { font-weight: bold; }
+
+.btn-delete {
+  color: red !important;
+  margin: 0.5rem 0.1rem;
+}
+
+.btn-delete:hover {
+  background-color: #ff0028 !important;
+  color: white !important;
+  border-radius: 0.5rem;
+}
+
 </style>

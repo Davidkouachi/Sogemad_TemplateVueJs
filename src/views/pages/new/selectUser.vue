@@ -420,59 +420,69 @@
     </div>
 
     <div class="card">
-        <FileUpload name="demo[]" url="/api/upload" @upload="onTemplatedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000" @select="onSelectedFiles">
-            <template #header="{ chooseCallback, uploadCallback, clearCallback, files }">
-                <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
-                    <div class="flex gap-2">
-                        <Button @click="chooseCallback()" icon="pi pi-images" rounded variant="outlined" severity="secondary"></Button>
-                        <Button @click="uploadEvent(uploadCallback)" icon="pi pi-cloud-upload" rounded variant="outlined" severity="success" :disabled="!files || files.length === 0"></Button>
-                        <Button @click="clearCallback()" icon="pi pi-times" rounded variant="outlined" severity="danger" :disabled="!files || files.length === 0"></Button>
-                    </div>
-                    <ProgressBar :value="totalSizePercent" :showValue="false" class="md:w-20rem h-1 w-full md:ml-auto">
-                        <span class="whitespace-nowrap">{{ totalSize }}B / 1Mb</span>
-                    </ProgressBar>
-                </div>
-            </template>
-            <template #content="{ files, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
-                <div class="flex flex-col gap-8 pt-4">
-                    <div v-if="files.length > 0">
-                        <h5>Pending</h5>
-                        <div class="flex flex-wrap gap-4">
-                            <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-8 rounded-border flex flex-col border border-surface items-center gap-4">
-                                <div>
-                                    <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" />
-                                </div>
-                                <span class="font-semibold text-ellipsis max-w-60 whitespace-nowrap overflow-hidden">{{ file.name }}</span>
-                                <div>{{ formatSize(file.size) }}</div>
-                                <Badge value="Pending" severity="warn" />
-                                <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" variant="outlined" rounded severity="danger" />
-                            </div>
-                        </div>
-                    </div>
+        <FileUpload
+    name="demo[]"
+    url="/api/upload"
+    @upload="onTemplatedUpload"
+    :multiple="true"
+    accept="image/*"
+    :maxFileSize="MAX_FILE_SIZE"
+    @select="onSelectedFiles"
+    :fileLimit="20"
+  >
+    <template #header="{ chooseCallback, uploadCallback, clearCallback, files: headerFiles }">
+      <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+        <div class="flex gap-2">
+          <Button @click="chooseCallback()" label="Choisir" icon="pi pi-images" rounded />
+          <Button @click="clearCallback(); onClearTemplatingUpload(clearCallback)" label="Tout supprimer"
+                  icon="pi pi-times" rounded severity="danger"
+                  :disabled="!headerFiles || headerFiles.length === 0"/>
+        </div>
 
-                    <div v-if="uploadedFiles.length > 0">
-                        <h5>Completed</h5>
-                        <div class="flex flex-wrap gap-4">
-                            <div v-for="(file, index) of uploadedFiles" :key="file.name + file.type + file.size" class="p-8 rounded-border flex flex-col border border-surface items-center gap-4">
-                                <div>
-                                    <img role="presentation" :alt="file.name" :src="file.objectURL" width="100" height="50" />
-                                </div>
-                                <span class="font-semibold text-ellipsis max-w-60 whitespace-nowrap overflow-hidden">{{ file.name }}</span>
-                                <div>{{ formatSize(file.size) }}</div>
-                                <Badge value="Completed" class="mt-4" severity="success" />
-                                <Button icon="pi pi-times" @click="removeUploadedFileCallback(index)" variant="outlined" rounded severity="danger" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-            <template #empty>
-                <div class="flex items-center justify-center flex-col">
-                    <i class="pi pi-cloud-upload !border-2 !rounded-full !p-8 !text-4xl !text-muted-color" />
-                    <p class="mt-6 mb-0">Drag and drop files to here to upload.</p>
-                </div>
-            </template>
-        </FileUpload>
+        <!-- PROGRESSBAR -->
+        <ProgressBar :value="totalSizePercent" :showValue="true" class="md:w-20rem w-full md:ml-auto h-1">
+          <span>{{ formatSize(totalBytes) }} / 1 MB</span>
+        </ProgressBar>
+      </div>
+    </template>
+
+    <template #content="{ files: contentFiles, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
+      <div class="flex flex-col gap-8 pt-4">
+
+        <!-- PENDING -->
+        <div v-if="contentFiles.length > 0">
+          <h5>En attente</h5>
+
+          <div class="flex flex-wrap gap-4">
+            <div
+              v-for="(file, index) in contentFiles"
+              :key="file.name + file.type + file.size"
+              class="p-8 rounded-border flex flex-col border border-surface items-center gap-4"
+            >
+              <img :src="file.objectURL" width="100" height="50" />
+              <span class="font-semibold max-w-60 text-ellipsis overflow-hidden">{{ file.name }}</span>
+              <div>{{ formatSize(file.size) }}</div>
+
+              <!-- <Badge size="large" value="Vérifier" severity="success"/> -->
+
+              <Button
+                icon="pi pi-times"
+                @click="onRemoveTemplatingFile(file, removeFileCallback, index)"
+                rounded severity="danger"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template #empty>
+      <div class="flex items-center justify-center flex-col">
+        <i class="pi pi-cloud-upload border-2 rounded-full p-8 text-4xl text-muted-color" />
+        <p class="mt-6 mb-0">Glissez des fichiers ici.</p>
+      </div>
+    </template>
+  </FileUpload>
     </div>
 
     <div class="card flex flex-col items-center gap-6">
@@ -483,7 +493,7 @@
 
 <script setup>
 import FileUpload from 'primevue/fileupload';
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { usePrimeVue } from 'primevue/config';
@@ -572,51 +582,106 @@ const visibleFull = ref(false);
 const visibleLogin = ref(false);
 const visibleMenu = ref(false);
 
-const totalSize = ref(0);
-const totalSizePercent = ref(0);
-const files = ref([]);
+const MAX_TOTAL_SIZE = 1024 * 1024; // 1 MB réel
+const MAX_FILE_SIZE = 1024 * 1024;  // idem
+const files = ref([]);        // fichiers sélectionnés
+const totalBytes = ref(0);    // taille totale en octets
 
-const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
-    removeFileCallback(index);
-    totalSize.value -= parseInt(formatSize(file.size));
-    totalSizePercent.value = totalSize.value / 10;
-};
+const totalSizePercent = computed(() =>
+  Math.min(100, (totalBytes.value / MAX_TOTAL_SIZE) * 100)
+);
 
-const onClearTemplatingUpload = (clear) => {
-    clear();
-    totalSize.value = 0;
-    totalSizePercent.value = 0;
+const formatSize = (bytes) => (bytes / 1024 / 1024).toFixed(2) + " MB";
+
+const recalcTotalSize = () => {
+  totalBytes.value = files.value.reduce((sum, f) => sum + f.size, 0);
 };
 
 const onSelectedFiles = (event) => {
-    files.value = event.files;
-    files.value.forEach((file) => {
-        totalSize.value += parseFloat(formatSize(file.size));
-    });
+  // fichiers nouvellement sélectionnés seulement
+  const incomingFiles = event.originalEvent?.target?.files || [];
+
+  const rejectedFiles = [];
+  const acceptedFiles = [];
+
+  for (const file of incomingFiles) {
+    // doublon ?
+    if (files.value.some(f => f.name === file.name)) {
+      rejectedFiles.push({
+        name: file.name,
+        reason: `Un fichier avec le même nom existe déjà`
+      });
+      continue;
+    }
+
+    // taille max par fichier
+    if (file.size > MAX_FILE_SIZE) {
+      rejectedFiles.push({
+        name: file.name,
+        reason: `Fichier trop volumineux (${formatSize(file.size)} > ${formatSize(MAX_FILE_SIZE)})`
+      });
+      continue;
+    }
+
+    // taille totale
+    if (totalBytes.value + file.size > MAX_TOTAL_SIZE) {
+      rejectedFiles.push({
+        name: file.name,
+        reason: `La taille totale serait dépassée (${formatSize(totalBytes.value + file.size)} / ${formatSize(MAX_TOTAL_SIZE)})`
+      });
+      continue;
+    }
+
+    // accepté
+    acceptedFiles.push(file);
+    totalBytes.value += file.size;
+  }
+
+  // ajouter au tableau local
+  files.value.push(...acceptedFiles);
+
+  // mettre à jour FileUpload
+  event.files.length = 0;
+  files.value.forEach(f => event.files.push(f));
+
+    if (rejectedFiles.length > 0) {
+      const msg = rejectedFiles
+        .map(f => `• ${f.name} : ${f.reason}`)
+        .join("\n");
+
+      toast.add({
+        severity: "warn",
+        summary: "Certains fichiers ont été rejetés",
+        detail: msg,
+        life: 6000,
+      });
+    }
+
+};
+    
+const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
+  removeFileCallback(index);       // PrimeVue supprime le fichier interne
+  files.value.splice(index, 1);    // supprime aussi du tableau local
+  recalcTotalSize();               // recalcul exact de la taille
+};
+
+const onClearTemplatingUpload = (clear) => {
+  clear();          // PrimeVue supprime tout
+  files.value = [];  // réinitialiser le tableau local
+  totalBytes.value = 0;
 };
 
 const uploadEvent = (callback) => {
-    totalSizePercent.value = totalSize.value / 10;
-    callback();
+  callback();
 };
 
 const onTemplatedUpload = () => {
-    toast.add({ severity: "info", summary: "Success", detail: "File Uploaded", life: 3000 });
-};
-
-const formatSize = (bytes) => {
-    const k = 1024;
-    const dm = 3;
-    const sizes = $primevue.config.locale.fileSizeTypes;
-
-    if (bytes === 0) {
-        return `0 ${sizes[0]}`;
-    }
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-
-    return `${formattedSize} ${sizes[i]}`;
+  toast.add({
+    severity: "success",
+    summary: "Succès",
+    detail: "Fichiers uploadés",
+    life: 3000,
+  });
 };
 
 const src = ref(null);
@@ -631,6 +696,10 @@ function onFileSelect(event) {
 
     reader.readAsDataURL(file);
 }
+
+onMounted(() => {
+    
+})
 
 </script>
 

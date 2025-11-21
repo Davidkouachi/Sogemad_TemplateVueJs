@@ -10,6 +10,40 @@
             <p class="preloaderS-message">{{ preloaderSpinner.messageSpiner }}</p>
         </div>
         <ConfirmDialog group="positioned"></ConfirmDialog>
+        <Dialog :dismissableMask="false" :visible="visibleAuth" pt:root:class="!border-0 !bg-transparent" pt:mask:class="backdrop-blur-sm bg-black/50 !pointer-events-auto">
+            <template #container="{ closeCallback }">
+                <div style="border-radius: 10px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color), rgba(33, 150, 243, 0) 30%)" >
+                    <div class="w-[25rem] bg-surface-0 dark:bg-surface-900 py-10 px-2 sm:px-5" style="border-radius: 7px">
+                        <form autocomplete="off" @submit.prevent="verifLoginForm">
+                            <div class="text-center">
+                                <Avatar icon="pi pi-user" class="block mx-auto mb-4 bg-primary" size="xlarge" shape="circle" style="background-image: radial-gradient(circle at left top, var(--p-primary-400), var(--p-primary-700)); color:white;"/>
+                                <div class="text-surface-900 dark:text-surface-0 text-xl font-medium mb-4">{{ auth.user?.login || 'Invité' }}</div>
+                                <span class="text-muted-color font-medium">Votre session a expiré. Veuillez saisir votre mot de passe pour continuer votre travail</span>
+                            </div>
+                            <div class="flex flex-col px-8 py-8 gap-6 rounded-2xl">
+                                <div class="inline-flex flex-col gap-2">
+                                    <FloatLabel variant="on">
+                                        <Password inputId="password1" v-model="passwordAuth" :toggleMask="true" fluid :feedback="false" size="large"/>
+                                        <label for="password1" class="text-surface-900 dark:text-surface-0 font-medium text-xl">Mot de passe</label>
+                                    </FloatLabel>
+                                </div>
+                                <div class="inline-flex flex-col gap-2">
+                                    <Button
+                                        size="large"
+                                        type="submit"
+                                        class="w-full"
+                                        :loading="loadingAuth"
+                                        severity="success"
+                                        :disabled="loadingAuth"
+                                        :label="loadingAuth ? 'Vérification en cours...' : 'Verfier'"
+                                    />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </template>
+        </Dialog>
         <app-topbar></app-topbar>
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
@@ -48,6 +82,7 @@ import { useSwalAlert } from '@/function/function/SwalAlert';
 import { usePreloaderStore } from '@/function/stores/preloader';
 import { useToastAlert } from '@/function/function/ToastAlert';
 import { useRouter } from 'vue-router';
+import axios from '@/function/services/axios';
 
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
 const router = useRouter();
@@ -55,11 +90,70 @@ const outsideClickListener = ref(null);
 
 const auth = useAuthStore();
 const { showSwal } = useSwalAlert();
-const { removeAllToasts } = useToastAlert();
+const { showToast, removeAllToasts, removeAllExcept } = useToastAlert();
 const preloader = usePreloaderStore();
 const preloaderSpinner = usePreloaderSpinner();
 
+const visibleAuth = ref(false);
+
+const passwordAuth = ref('')
+const loadingAuth = ref(false);
+
 let swalShown = false;
+let submitting = false;
+
+const verifLoginForm = async () => {
+    if (submitting) return;   // 🔥 empêche 100% des doubles appels
+    submitting = true;
+
+    if (!passwordAuth.value) {
+        showToast('warn', 'Alerte', 'Mot de passe obligatoire');
+        submitting = false;
+        return;
+    }
+
+    loadingAuth.value = true;
+
+    try {
+
+        const res = await axios.post('/api/login', {
+            login: auth.user.login,
+            password: passwordAuth.value
+        });
+
+        if (res.data.success) {
+
+            const { access_token, refresh_token, user, expires_in } = res.data;
+
+            auth.setUserSession(user, expires_in, access_token, refresh_token);
+
+            const mainId = showToast(
+                'success',
+                'Vérification éffectuée',
+                `${user.name}, nous sommes heureux de vous revoir 🤝!`,
+                3000,
+                '1'
+            );
+
+            visibleAuth.value = false
+
+        } else if (res.data.info) {
+            showToast('info', 'Informations', res.data.message);
+        } else if (res.data.warn) {
+            showToast('warn', 'Alerte', res.data.message);
+        } else {
+            showToast('error', 'Erreur', res.data.message || 'Erreur inconnue');
+        }
+    } 
+    catch (err) {
+        showToast('error', 'Erreur', err.message);
+        auth.logoutLocal(false)
+    } 
+    finally {
+        loadingAuth.value = false;
+        submitting = false;   // 🔥 permet à nouveau un clic, mais jamais double
+    }
+};
 
 // Préloader global sur navigation
 router.beforeEach((to, from, next) => {
@@ -95,23 +189,25 @@ watch(
     if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
     swalShown = true;
 
-    auth.logoutServer(false)
+    // auth.logoutServer(false)
 
-    const result = await showSwal({
-      icon: 'warning',
-      title: 'Session expirée',
-      text: 'Votre session a expiré. Veuillez vous reconnecter.',
-      confirmButtonText: 'Ok',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-    });
+    visibleAuth.value = true
 
-    if (result.isConfirmed) {
-        removeAllToasts();
-        preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
-            auth.logoutLocal(true);
-        });
-    }
+    // const result = await showSwal({
+    //   icon: 'warning',
+    //   title: 'Session expirée',
+    //   text: 'Votre session a expiré. Veuillez vous reconnecter.',
+    //   confirmButtonText: 'Ok',
+    //   allowOutsideClick: false,
+    //   allowEscapeKey: false,
+    // });
+
+    // if (result.isConfirmed) {
+    //     removeAllToasts();
+    //     preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
+    //         auth.logoutLocal(true);
+    //     });
+    // }
 
     swalShown = false;
   }

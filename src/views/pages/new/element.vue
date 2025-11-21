@@ -21,19 +21,10 @@
     <div class="card flex justify-center">
         <Button label="Login" icon="pi pi-user" @click="visible = true" />
 
-        <Dialog v-model:visible="visible" pt:root:class="!border-0 !bg-transparent" pt:mask:class="backdrop-blur-sm">
+        <Dialog :dismissableMask="false" v-model:visible="visible" pt:root:class="!border-0 !bg-transparent" pt:mask:class="backdrop-blur-sm !pointer-events-auto">
             <template #container="{ closeCallback }">
                 <div class="flex flex-col px-8 py-8 gap-6 rounded-2xl" style="background-image: radial-gradient(circle at left top, var(--p-primary-400), var(--p-primary-700))">
-                    <svg width="35" height="40" viewBox="0 0 35 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="block mx-auto">
-                        <path
-                            d="M25.87 18.05L23.16 17.45L25.27 20.46V29.78L32.49 23.76V13.53L29.18 14.73L25.87 18.04V18.05ZM25.27 35.49L29.18 31.58V27.67L25.27 30.98V35.49ZM20.16 17.14H20.03H20.17H20.16ZM30.1 5.19L34.89 4.81L33.08 12.33L24.1 15.67L30.08 5.2L30.1 5.19ZM5.72 14.74L2.41 13.54V23.77L9.63 29.79V20.47L11.74 17.46L9.03 18.06L5.72 14.75V14.74ZM9.63 30.98L5.72 27.67V31.58L9.63 35.49V30.98ZM4.8 5.2L10.78 15.67L1.81 12.33L0 4.81L4.79 5.19L4.8 5.2ZM24.37 21.05V34.59L22.56 37.29L20.46 39.4H14.44L12.34 37.29L10.53 34.59V21.05L12.42 18.23L17.45 26.8L22.48 18.23L24.37 21.05ZM22.85 0L22.57 0.69L17.45 13.08L12.33 0.69L12.05 0H22.85Z"
-                            fill="var(--p-primary-700)"
-                        />
-                        <path
-                            d="M30.69 4.21L24.37 4.81L22.57 0.69L22.86 0H26.48L30.69 4.21ZM23.75 5.67L22.66 3.08L18.05 14.24V17.14H19.7H20.03H20.16H20.2L24.1 15.7L30.11 5.19L23.75 5.67ZM4.21002 4.21L10.53 4.81L12.33 0.69L12.05 0H8.43002L4.22002 4.21H4.21002ZM21.9 17.4L20.6 18.2H14.3L13 17.4L12.4 18.2L12.42 18.23L17.45 26.8L22.48 18.23L22.5 18.2L21.9 17.4ZM4.79002 5.19L10.8 15.7L14.7 17.14H14.74H15.2H16.85V14.24L12.24 3.09L11.15 5.68L4.79002 5.2V5.19Z"
-                            fill="var(--p-primary-200)"
-                        />
-                    </svg>
+                    <Avatar icon="pi pi-user" class="block mx-auto" size="xlarge" shape="circle" />
                     <div class="inline-flex flex-col gap-2">
                         <label for="username" class="text-primary-50 font-semibold">Username</label>
                         <InputText id="username" class="!bg-white/20 !border-0 !p-4 !text-primary-50 w-80"></InputText>
@@ -63,7 +54,7 @@
         </FloatLabel>
     </div>
     <div class="card flex justify-center">
-        <Select v-model="selectedCountry" :options="countries" optionLabel="name" placeholder="Select a Country" class="w-full md:w-80" size="large">
+        <Select v-model="selectedCountry" :options="countries" optionLabel="name" placeholder="Chargement en cours" class="w-full md:w-80" size="large" :loading="true">
             <template #value="slotProps">
                 <div v-if="slotProps.value" class="flex items-center">
                     <img :alt="slotProps.value.label" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`mr-2 flag flag-${slotProps.value.code.toLowerCase()}`" style="width: 18px" />
@@ -417,11 +408,22 @@
         </Drawer>
     </div>
     <div class="card">
-        <FileUpload name="demo[]" url="/api/upload" @upload="onTemplatedUpload" :multiple="true" accept="image/*" :maxFileSize="MAX_FILE_SIZE" @select="onSelectedFiles" :fileLimit="20">
+        <FileUpload
+            name="demo[]"
+            url="/api/upload"
+            @upload="onTemplatedUpload"
+            :multiple="true"
+            accept="image/*"
+            :maxFileSize="MAX_FILE_SIZE"
+            @select="onSelectedFiles"
+            :fileLimit="20"
+        >
+            <!-- HEADER -->
             <template #header="{ chooseCallback, uploadCallback, clearCallback, files: headerFiles }">
                 <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
                     <div class="flex gap-2">
                         <Button @click="chooseCallback()" label="Choisir" icon="pi pi-images" rounded />
+
                         <Button
                             @click="
                                 clearCallback();
@@ -435,36 +437,53 @@
                         />
                     </div>
 
-                    <!-- PROGRESSBAR -->
                     <ProgressBar :value="totalSizePercent" :showValue="true" class="md:w-20rem w-full md:ml-auto h-1">
                         <span>{{ formatSize(totalBytes) }} / 1 MB</span>
                     </ProgressBar>
                 </div>
             </template>
 
+            <!-- CONTENT quand fichiers déjà présents -->
             <template #content="{ files: contentFiles, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
-                <div class="flex flex-col gap-8 pt-4">
-                    <!-- PENDING -->
+                <div
+                    class="flex flex-col gap-8 pt-4"
+                    @dragover.prevent
+                    @drop.prevent="handleDrop"
+                >
                     <div v-if="contentFiles.length > 0">
                         <h5>En attente</h5>
 
                         <div class="flex flex-wrap gap-4">
-                            <div v-for="(file, index) in contentFiles" :key="file.name + file.type + file.size" class="p-8 rounded-border flex flex-col border border-surface items-center gap-4">
+                            <div
+                                v-for="(file, index) in contentFiles"
+                                :key="file.name + file.type + file.size"
+                                class="p-8 rounded-border flex flex-col border border-surface items-center gap-4"
+                            >
                                 <img :src="file.objectURL" width="100" height="50" />
-                                <span class="font-semibold max-w-60 text-ellipsis overflow-hidden">{{ file.name }}</span>
+                                <span class="font-semibold max-w-60 text-ellipsis overflow-hidden">
+                                    {{ file.name }}
+                                </span>
                                 <div>{{ formatSize(file.size) }}</div>
 
-                                <!-- <Badge size="large" value="Vérifier" severity="success"/> -->
-
-                                <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" rounded severity="danger" />
+                                <Button
+                                    icon="pi pi-times"
+                                    @click="onRemoveTemplatingFile(file, removeFileCallback, index)"
+                                    rounded
+                                    severity="danger"
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
             </template>
 
-            <template #empty>
-                <div class="flex items-center justify-center flex-col">
+            <!-- EMPTY quand aucun fichier -->
+            <template #empty="{ chooseCallback }">
+                <div
+                    class="flex items-center justify-center flex-col w-full h-full"
+                    @dragover.prevent
+                    @drop.prevent="handleDrop"
+                >
                     <i class="pi pi-cloud-upload border-2 rounded-full p-8 text-4xl text-muted-color" />
                     <p class="mt-6 mb-0">Glissez des fichiers ici.</p>
                 </div>
@@ -979,7 +998,16 @@ const onSelectedFiles = (event) => {
         life: 6000,
       });
     }
-};   
+};
+const handleDrop = (e) => {
+    const filesDropped = e.dataTransfer?.files || [];
+    if (!filesDropped.length) return;
+
+    onSelectedFiles({
+        originalEvent: { target: { files: filesDropped } },
+        files: []
+    });
+};
 const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
   removeFileCallback(index);       // PrimeVue supprime le fichier interne
   files.value.splice(index, 1);    // supprime aussi du tableau local

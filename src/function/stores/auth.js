@@ -5,7 +5,7 @@ import { ref } from "vue";
 import { setSecureItem, getSecureItem, removeSecureItem } from "@/function/stores/secureStorage";
 
 let countdownInterval = null;
-let inactivityMin = 30;
+let inactivityMin = 1;
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -46,6 +46,7 @@ export const useAuthStore = defineStore("auth", {
       setSecureItem("refresh_token", refreshToken);
       setSecureItem("session_expire", expireAt);
       setSecureItem("session_expired", "false");
+      setSecureItem("session_login", user.login);
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -265,13 +266,14 @@ export const useAuthStore = defineStore("auth", {
 
         console.log("User déconnecté backend");
       } catch (_) {}
+      
+      this.isLoggingOut = false;
 
       if (manuel === true) {
         this.logoutLocal();
         router.push({ name: "Authentification" });
       }
 
-      this.isLoggingOut = false;
     },
 
     // ------------------------------------------------------

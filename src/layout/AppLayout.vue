@@ -17,7 +17,7 @@
                         <form autocomplete="off" @submit.prevent="verifLoginForm">
                             <div class="text-center">
                                 <Avatar icon="pi pi-user" class="block mx-auto mb-4 bg-primary" size="xlarge" shape="circle" style="background-image: radial-gradient(circle at left top, var(--p-primary-400), var(--p-primary-700)); color:white;"/>
-                                <div class="text-surface-900 dark:text-surface-0 text-xl font-medium mb-4">{{ auth.user?.login || 'Invité' }}</div>
+                                <div class="text-surface-900 dark:text-surface-0 text-xl font-medium mb-4">{{auth.user.name}}</div>
                                 <span class="text-muted-color font-medium">Votre session a expiré. Veuillez saisir votre mot de passe pour continuer votre travail</span>
                             </div>
                             <div class="flex flex-col px-8 py-8 gap-6 rounded-2xl">
@@ -189,7 +189,7 @@ watch(
     if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
     swalShown = true;
 
-    // auth.logoutServer(false)
+    auth.logoutServer(false)
 
     visibleAuth.value = true
 

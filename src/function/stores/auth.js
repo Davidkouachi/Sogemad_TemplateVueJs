@@ -22,7 +22,7 @@ export const useAuthStore = defineStore("auth", {
     manualLogout: false,
     isLoggingOut: false,
 
-    presite: false,
+    presite: true,
   }),
 
   getters: {
@@ -46,7 +46,6 @@ export const useAuthStore = defineStore("auth", {
       setSecureItem("refresh_token", refreshToken);
       setSecureItem("session_expire", expireAt);
       setSecureItem("session_expired", "false");
-      setSecureItem("session_login", user.login);
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -65,9 +64,6 @@ export const useAuthStore = defineStore("auth", {
       const token = await getSecureItem("jwt_token");
       const refreshToken = await getSecureItem("refresh_token");
       const expireAt = await getSecureItem("session_expire");
-      const presiteValue = await getSecureItem("presite");
-
-      this.presite = presiteValue === "1";
 
       if (!token || !refreshToken || !expireAt) return false;
 
@@ -222,7 +218,6 @@ export const useAuthStore = defineStore("auth", {
       removeSecureItem("jwt_token");
       removeSecureItem("refresh_token");
       removeSecureItem("session_expire");
-      removeSecureItem("presite");
 
       delete axios.defaults.headers.common["Authorization"];
 
@@ -276,15 +271,5 @@ export const useAuthStore = defineStore("auth", {
 
     },
 
-    // ------------------------------------------------------
-    setPresite(value = true) {
-      this.presite = value;
-      setSecureItem("presite", value ? "1" : "0");
-    },
-
-    togglePresite() {
-      this.presite = !this.presite;
-      setSecureItem("presite", this.presite ? "1" : "0");
-    },
   },
 });

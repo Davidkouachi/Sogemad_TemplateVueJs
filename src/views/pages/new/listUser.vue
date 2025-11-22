@@ -9,6 +9,7 @@ import Dialog from 'primevue/dialog';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToastAlert } from '@/function/function/ToastAlert';
 import { pdfListeUser } from '@/pdf/pdf_liste_user.js';
+import { pdfAssurance } from '@/pdf/pdf_assurance.js';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 
 const { showToast } = useToastAlert();
@@ -68,7 +69,6 @@ const closeModal = () => {
     userSelected.value = {};
 };
 
-// 🔁 Récupérer les données visibles / filtrées
 const getLignesPageCourante = () => {
     if (!dt.value) return [];
 
@@ -93,6 +93,15 @@ const handleExportPDF = () => {
     });
 };
 
+const handleExportPDFR = () => {
+
+    preloaderSpinner.showSpiner('Creation du rapport en cours...', () => {
+        setTimeout(() => {
+            pdfAssurance();
+        }, 200); 
+    });
+};
+
 function formatDateHeure(value) {
     if (!value) return '';
 
@@ -112,7 +121,6 @@ function formatDateHeure(value) {
     return `${day}/${month}/${year} à ${hours}:${minutes}:${seconds}`;
 }
 
-// Menu actions
 const actionItems = (user) => [
     { label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
     { label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
@@ -168,7 +176,8 @@ onMounted(() => {
                     <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
                         <Button type="button" icon="pi pi-filter-slash" label="Filtre" @click="initFilters"/>
                         <Button type="button" icon="pi pi-refresh" @click="fetchUsers(true)" severity="warn" :disabled="loadingBtn" :loading="loadingBtn" :label="loadingBtn ? 'Actualisation en cours...' : 'Actualiser'"/>
-                        <Button type="button" icon="pi pi-file-pdf" label="PDF" @click="handleExportPDF" severity="danger"/>
+                        <Button type="button" icon="pi pi-file-pdf" label="Pdf" @click="handleExportPDF" severity="danger"/>
+                        <Button type="button" icon="pi pi-file-pdf" label="Rapport" @click="handleExportPDFR" severity="danger"/>
                     </div>
                 </div>
             </template>

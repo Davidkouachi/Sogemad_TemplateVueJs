@@ -44,9 +44,9 @@
                 </div>
             </template>
         </Dialog>
-        <app-topbar></app-topbar>
-        <app-sidebar></app-sidebar>
-        <div class="layout-main-container">
+        <app-topbar v-if="!visibleAuth"></app-topbar>
+        <app-sidebar v-if="!visibleAuth"></app-sidebar>
+        <div class="layout-main-container" v-if="!visibleAuth">
             <div class="layout-main">
                 <div v-if="preloader.loading" class="cardPreloader" style="position: relative; min-height: 70vh;">
                     <!-- Preloader -->

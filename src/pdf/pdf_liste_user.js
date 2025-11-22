@@ -4,7 +4,6 @@ const preloaderSpinner = usePreloaderSpinner();
 export function pdfListeUser(users) {
   
   if (!users || !users.length) {
-    // alert("Aucun utilisateur à exporter !");
     return;
   }
 
@@ -47,5 +46,7 @@ export function pdfListeUser(users) {
   }
   
   preloaderSpinner.hideSpiner();
-  doc.output('dataurlnewwindow');
+  // doc.output('dataurlnewwindow');
+  const pdfData = doc.output("bloburl");
+  window.open(pdfData);
 }

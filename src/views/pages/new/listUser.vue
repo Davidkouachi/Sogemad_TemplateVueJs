@@ -12,9 +12,11 @@ import { pdfListeUser } from '@/export/pdf/pdf_liste_user.js';
 import { pdfAssurance } from '@/export/pdf/pdf_assurance.js';
 import { excelUser } from '@/export/excel/excel_user.js';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
+import { useConfirm } from "primevue/useconfirm";
 
 const { showToast } = useToastAlert();
 const preloaderSpinner = usePreloaderSpinner();
+const confirm = useConfirm();
 
 const users = ref([]);
 const loading = ref(true);
@@ -161,9 +163,31 @@ const exportItemsExcel = [
 const actionItems = (user) => [
     { label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
     { label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
-    { separator: true },
-    { label: 'Supprimer', icon: 'pi pi-trash', command: () => showToast('warn','Supprimer',`Supprimer ${user.name}`) }
+    { separator: true }
 ];
+
+const deleteTable = (event, data) => {
+    confirm.require({
+        target: event.currentTarget,
+        message: 'Voulez-vous continuer ?',
+        icon: 'pi pi-info-circle',
+        rejectProps: {
+            label: 'Non',
+            severity: 'danger',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Oui',
+            severity: 'success'
+        },
+        accept: () => {
+            showToast('success', 'Alerte', 'Opération éffectuée.');
+        },
+        reject: () => {
+            showToast('info', 'Alerte', 'Opération non éffectuée.');
+        }
+    });
+};
 
 onMounted(() => {
     fetchUsers();
@@ -277,8 +301,8 @@ onMounted(() => {
             <Column header="Actions" style="width:10%">
                 <template #body="{ data }">
                     <Skeleton v-if="loading" width="6rem" height="2rem" />
-                    <SplitButton 
-                        v-else
+                    <div class="flex flex-row gap-2" v-else >
+                    <SplitButton
                         :model="actionItems(data)" 
                         icon="" 
                         label="Actions" 
@@ -286,6 +310,8 @@ onMounted(() => {
                         severity="warn" 
                         size="small"
                     />
+                    <Button severity="danger" type="button" icon="pi pi-trash" label="" @click="deleteTable($event, data)"/>
+                    </div>
                 </template>
             </Column>
 

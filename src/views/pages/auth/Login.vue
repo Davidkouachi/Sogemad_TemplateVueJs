@@ -5,20 +5,21 @@
         <div class="flex flex-col items-center justify-center" style="position:relative; z-index:1;">
             <div style="border-radius: 10px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)" >
                 <div class="w-full border border-4 bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-10" style="border-radius: 7px">
-                    <form @submit.prevent="connectLoginForm">
+                    <form @submit.prevent="connectLoginForm" autocomplete="off">
                         <div class="text-center mb-8">
                             <img height="120" width="160" src="@/assets/img/logo.png" class="mb-8 w-23 shrink-0 mx-auto" alt="Logo">
                             <div class="text-surface-900 dark:text-surface-0 text-xl font-medium mb-4">Bienvenue ! 👋</div>
                             <span class="text-muted-color font-medium">Plateforme de gestion santé</span>
                         </div>
-                        <div>
-                            <label for="login1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Login</label>
-                            <InputText id="login1" type="text" placeholder="Email address" class="w-full mb-8" v-model="login" />
-
-                            <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Mot de passe</label>
-                            <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false">
-                            </Password>
-
+                        <div class="flex flex-col gap-6 rounded-2xl">
+                            <FloatLabel variant="on">                                
+                                <InputText id="login1" type="text" v-model="login" size="large" class="w-full"/>
+                                <label for="login1" class="text-surface-900 dark:text-surface-0 font-medium text-xl">Login</label>
+                            </FloatLabel>
+                            <FloatLabel variant="on">
+                                <Password inputId="password1" v-model="password" :toggleMask="true" fluid :feedback="false" size="large"/>
+                                <label for="password1" class="text-surface-900 dark:text-surface-0 font-medium text-xl">Mot de passe</label>
+                            </FloatLabel>
                             <div class="flex items-center justify-between mt-2 mb-8 gap-8">
                                 <div class="flex items-center">
                                     <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>

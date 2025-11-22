@@ -9,7 +9,23 @@
             />
             <p class="preloaderS-message">{{ preloaderSpinner.messageSpiner }}</p>
         </div>
-        <ConfirmDialog group="positioned"></ConfirmDialog>
+        <ConfirmPopup></ConfirmPopup>
+        <!-- <ConfirmDialog group="positioned"></ConfirmDialog> -->
+        <ConfirmDialog group="headless" :style="{ width: '25rem' }">
+            <template #container="{ message, acceptCallback, rejectCallback }">
+                <div class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded">
+                    <div class="rounded-full bg-primary text-primary-contrast inline-flex justify-center items-center h-24 w-24 -mt-20">
+                        <i class="pi pi-question !text-4xl"></i>
+                    </div>
+                    <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
+                    <p class="mb-0">{{ message.message }}</p>
+                    <div class="flex items-center gap-2 mt-6">
+                        <Button severity="success" label="Oui" @click="acceptCallback"></Button>
+                        <Button severity="danger" label="Non" variant="outlined" @click="rejectCallback"></Button>
+                    </div>
+                </div>
+            </template>
+        </ConfirmDialog>
         <Dialog :dismissableMask="false" :visible="visibleAuth" pt:root:class="!border-0 !bg-transparent" pt:mask:class="backdrop-blur-sm bg-black/50 !pointer-events-auto">
             <template #container="{ closeCallback }">
                 <div style="border-radius: 10px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color), rgba(33, 150, 243, 0) 30%)" >
@@ -44,9 +60,9 @@
                 </div>
             </template>
         </Dialog>
-        <app-topbar v-if="!visibleAuth"></app-topbar>
-        <app-sidebar v-if="!visibleAuth"></app-sidebar>
-        <div class="layout-main-container" v-if="!visibleAuth">
+        <app-topbar ></app-topbar>
+        <app-sidebar ></app-sidebar>
+        <div class="layout-main-container" >
             <div class="layout-main">
                 <div v-if="preloader.loading" class="cardPreloader" style="position: relative; min-height: 70vh;">
                     <!-- Preloader -->

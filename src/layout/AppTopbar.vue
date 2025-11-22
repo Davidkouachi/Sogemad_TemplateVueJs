@@ -54,11 +54,12 @@ const tempsInactivite = computed(() => formatTime(auth.inactivityRestant));
 function handleItemClick (item, position) {
     if (item.id === "logout") {
         confirm.require({
-            group: 'positioned',
+            // group: 'positioned',
+            group: 'headless',
             message: 'Voulez-vous vraiment vous déconnecter ?',
             header: 'Confirmation',
-            icon: 'pi pi-info-circle',
-            position: position,
+            // icon: 'pi pi-info-circle',
+            // position: position,
             rejectProps: {
                 icon: 'pi pi-times',
                 label: 'Non',

@@ -8,8 +8,9 @@ import InputText from 'primevue/inputtext';
 import Dialog from 'primevue/dialog';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToastAlert } from '@/function/function/ToastAlert';
-import { pdfListeUser } from '@/pdf/pdf_liste_user.js';
-import { pdfAssurance } from '@/pdf/pdf_assurance.js';
+import { pdfListeUser } from '@/export/pdf/pdf_liste_user.js';
+import { pdfAssurance } from '@/export/pdf/pdf_assurance.js';
+import { excelUser } from '@/export/excel/excel_user.js';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 
 const { showToast } = useToastAlert();
@@ -102,6 +103,21 @@ const handleExportPDFR = () => {
     });
 };
 
+const handleExportEXCEL = () => {
+    const donnees = JSON.parse(JSON.stringify(getLignesPageCourante()));
+
+    if (!donnees.length) {
+        showToast('warn', 'Alerte', 'Aucune donnée à exporter.');
+        return;
+    }
+
+    preloaderSpinner.showSpiner('Creation du rapport en cours...', () => {
+        setTimeout(() => {
+            excelUser(donnees);
+        }, 200); 
+    });
+};
+
 function formatDateHeure(value) {
     if (!value) return '';
 
@@ -120,6 +136,27 @@ function formatDateHeure(value) {
 
     return `${day}/${month}/${year} à ${hours}:${minutes}:${seconds}`;
 }
+
+const exportItemsPdf = [
+    {
+        label: 'Liste User',
+        icon: 'pi pi-file-pdf',
+        command: () => handleExportPDF()
+    },
+    {
+        label: 'Rapport User',
+        icon: 'pi pi-file-excel',
+        command: () => handleExportPDFR()
+    }
+];
+
+const exportItemsExcel = [
+    {
+        label: 'Liste User',
+        icon: 'pi pi-file-excel',
+        command: () => handleExportEXCEL()
+    }
+];
 
 const actionItems = (user) => [
     { label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
@@ -176,8 +213,8 @@ onMounted(() => {
                     <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
                         <Button type="button" icon="pi pi-filter-slash" label="Filtre" @click="initFilters"/>
                         <Button type="button" icon="pi pi-refresh" @click="fetchUsers(true)" severity="warn" :disabled="loadingBtn" :loading="loadingBtn" :label="loadingBtn ? 'Actualisation en cours...' : 'Actualiser'"/>
-                        <Button type="button" icon="pi pi-file-pdf" label="Pdf" @click="handleExportPDF" severity="danger"/>
-                        <Button type="button" icon="pi pi-file-pdf" label="Rapport" @click="handleExportPDFR" severity="danger"/>
+                        <SplitButton label="Pdf" icon="pi pi-file-pdf" :model="exportItemsPdf" severity="danger" />
+                        <SplitButton label="Excel" icon="pi pi-file-excel" :model="exportItemsExcel" severity="success" />
                     </div>
                 </div>
             </template>

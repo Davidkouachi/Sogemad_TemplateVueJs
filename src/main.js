@@ -3,6 +3,7 @@ import App from './App.vue';
 import router from '@/router';
 import { createPinia, setActivePinia  } from 'pinia';
 import piniaPersist from 'pinia-plugin-persistedstate';
+// import { piniaSecurePersist } from '@/function/stores/securePersist';
 
 import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -18,6 +19,12 @@ const app = createApp(App);
 const pinia = createPinia();
 
 pinia.use(piniaPersist);
+// pinia.use(
+//   piniaSecurePersist({
+//     key: "auth",
+//     paths: ["user", "token", "refreshToken", "sessionExpire", "expired"]
+//   })
+// );
 app.use(pinia);
 app.use(router);
 

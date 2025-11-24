@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AppLayout from '@/layout/AppLayout.vue';
 import { useAuthStore } from '@/function/stores/auth';
+import { getSecureItem } from "@/function/stores/secureStorage";
 
 // Routes enfants du layout principal
 const appChildren = [
@@ -49,20 +50,44 @@ const router = createRouter({
 });
 
 // Middleware de navigation (auth + titre)
+// router.beforeEach(async (to, from, next) => {
+//     const auth = useAuthStore();
+
+//     // Restaurer session depuis secureStorage si nécessaire
+//     if (!auth.token) {
+//         await auth.restoreSession();
+//     }
+
+//     // Rediriger vers Home si déjà connecté et tente d’aller sur login
+//     if (to.name === 'Authentification' && auth.isAuthenticated) {
+//         return next({ name: 'dashboard' });
+//     }
+
+//     // Protéger les routes nécessitant l’auth
+//     if (to.meta?.requiresAuth && !auth.isAuthenticated) {
+//         auth.logoutLocal(true);
+//         return next({ name: 'Authentification' });
+//     }
+
+//     // Mettre à jour le titre de la page
+//     document.title = `${to.meta?.title ?? 'Page'} | Sogamad Santé`;
+
+//     next();
+// });
 router.beforeEach(async (to, from, next) => {
     const auth = useAuthStore();
 
-    // Restaurer session depuis secureStorage si nécessaire
+    // // Restaurer session depuis secureStorage si nécessaire
     if (!auth.token) {
-        await auth.restoreSession();
+        await auth.restoreSession(); // <-- attendre
     }
 
-    // Rediriger vers Home si déjà connecté et tente d’aller sur login
+    // // Rediriger vers Home si déjà connecté et tente d’aller sur login
     if (to.name === 'Authentification' && auth.isAuthenticated) {
         return next({ name: 'dashboard' });
     }
 
-    // Protéger les routes nécessitant l’auth
+    // // Protéger les routes nécessitant l’auth
     if (to.meta?.requiresAuth && !auth.isAuthenticated) {
         auth.logoutLocal(true);
         return next({ name: 'Authentification' });
@@ -73,6 +98,7 @@ router.beforeEach(async (to, from, next) => {
 
     next();
 });
+
 
 
 export default router;

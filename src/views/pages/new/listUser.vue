@@ -13,7 +13,9 @@ import { pdfAssurance } from '@/export/pdf/pdf_assurance.js';
 import { excelUser } from '@/export/excel/excel_user.js';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 import { useConfirm } from "primevue/useconfirm";
+import { useAuthStore } from '@/function/stores/auth';
 
+const auth = useAuthStore();
 const { showToast } = useToastAlert();
 const preloaderSpinner = usePreloaderSpinner();
 const confirm = useConfirm();
@@ -302,15 +304,22 @@ onMounted(() => {
                 <template #body="{ data }">
                     <Skeleton v-if="loading" width="6rem" height="2rem" />
                     <div class="flex flex-row gap-2" v-else >
-                    <SplitButton
-                        :model="actionItems(data)" 
-                        icon="" 
-                        label="Actions" 
-                        dropdownIcon="pi pi-cog" 
-                        severity="warn" 
-                        size="small"
-                    />
-                    <Button severity="danger" type="button" icon="pi pi-trash" label="" @click="deleteTable($event, data)"/>
+                        <SplitButton
+                            :model="actionItems(data)" 
+                            icon="" 
+                            label="Actions" 
+                            dropdownIcon="pi pi-cog" 
+                            severity="warn" 
+                            size="small"
+                        />
+                        <Button 
+                            v-if="auth.user && auth.user.login !== data.login" 
+                            severity="danger" 
+                            type="button" 
+                            icon="pi pi-trash" 
+                            label="" 
+                            @click="deleteTable($event, data)"
+                        />
                     </div>
                 </template>
             </Column>

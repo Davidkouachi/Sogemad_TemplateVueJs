@@ -4,7 +4,7 @@
         <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:0;"></div>
         <div class="flex flex-col items-center justify-center" style="position:relative; z-index:1;">
             <div style="border-radius: 10px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)" >
-                <div class="w-full border border-4 bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-10" style="border-radius: 7px">
+                <div class="w-full bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-10" style="border-radius: 7px">
                     <form @submit.prevent="connectLoginForm" autocomplete="off">
                         <div class="text-center mb-8">
                             <img height="120" width="160" src="@/assets/img/logo.png" class="mb-8 w-23 shrink-0 mx-auto" alt="Logo">
@@ -70,6 +70,29 @@ const backgroundImage = new URL('@/assets/img/plan1.jpg', import.meta.url).href
 
 let submitting = false;
 
+function getDeviceId() {
+    let id = localStorage.getItem("device_id");
+
+    if (!id) {
+        if (crypto.randomUUID) {
+            id = crypto.randomUUID();
+        } else {
+            // Polyfill compatible
+            id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = (Math.random() * 16) | 0;
+                const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                return v.toString(16);
+            });
+        }
+        localStorage.setItem("device_id", id);
+    }
+
+    return id;
+}
+
+// usage
+const deviceId = getDeviceId();
+
 const connectLoginForm = async () => {
     if (submitting) return;   // 🔥 empêche 100% des doubles appels
     submitting = true;
@@ -86,14 +109,16 @@ const connectLoginForm = async () => {
 
         const res = await axios.post('/api/login', {
             login: login.value,
-            password: password.value
+            password: password.value,
+            device_id: deviceId
         });
 
         if (res.data.success) {
 
             const { access_token, refresh_token, user, expires_in } = res.data;
 
-            auth.setUserSession(user, expires_in, access_token, refresh_token);
+            // auth.setUserSession(user, expires_in, access_token, refresh_token);
+            auth.setUserSession(user, expires_in, access_token, refresh_token, deviceId);
 
             const mainId = showToast(
                 'success',

@@ -171,6 +171,58 @@ const verifLoginForm = async () => {
     }
 };
 
+// const verifLoginForm = () => {
+//     if (submitting) return; // 🔥 empêche 100% des doubles appels
+//     submitting = true;
+
+//     if (!passwordAuth.value) {
+//         showToast('warn', 'Alerte', 'Mot de passe obligatoire');
+//         submitting = false;
+//         return;
+//     }
+
+//     loadingAuth.value = true;
+
+//     axios.post('/api/login', {
+//         login: auth.user.login,
+//         password: passwordAuth.value
+//     })
+//     .then(res => {
+//         const data = res.data;
+
+//         if (data.success) {
+//             const { access_token, refresh_token, user, expires_in } = data;
+//             auth.setUserSession(user, expires_in, access_token, refresh_token);
+
+//             showToast(
+//                 'success',
+//                 'Vérification éffectuée',
+//                 `${user.name}, nous sommes heureux de vous revoir 🤝!`,
+//                 3000,
+//                 '1'
+//             );
+
+//             visibleAuth.value = false;
+
+//         } else if (data.info) {
+//             showToast('info', 'Informations', data.message);
+//         } else if (data.warn) {
+//             showToast('warn', 'Alerte', data.message);
+//         } else {
+//             showToast('error', 'Erreur', data.message || 'Erreur inconnue');
+//         }
+//     })
+//     .catch(err => {
+//         showToast('error', 'Erreur', err.message);
+//         auth.logoutLocal(false);
+//     })
+//     .finally(() => {
+//         loadingAuth.value = false;
+//         submitting = false; // 🔥 permet à nouveau un clic, mais jamais double
+//     });
+// };
+
+
 // Préloader global sur navigation
 router.beforeEach((to, from, next) => {
     if (!auth.expired) preloader.show(); // afficher loader
@@ -198,36 +250,51 @@ watch(isSidebarActive, (newVal) => {
     }
 });
 
-// 🕑 Surveille expiration du token
+// // 🕑 Surveille expiration du token
+// watch(
+//   () => auth.expired,
+//   async (val) => {
+//     if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
+//     swalShown = true;
+
+//     auth.logoutServer(false)
+
+//     visibleAuth.value = true
+
+//     // const result = await showSwal({
+//     //   icon: 'warning',
+//     //   title: 'Session expirée',
+//     //   text: 'Votre session a expiré. Veuillez vous reconnecter.',
+//     //   confirmButtonText: 'Ok',
+//     //   allowOutsideClick: false,
+//     //   allowEscapeKey: false,
+//     // });
+
+//     // if (result.isConfirmed) {
+//     //     removeAllToasts();
+//     //     preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
+//     //         auth.logoutLocal(true);
+//     //     });
+//     // }
+
+//     swalShown = false;
+//   }
+// );
+
 watch(
   () => auth.expired,
-  async (val) => {
+  (val) => {
     if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
     swalShown = true;
 
-    auth.logoutServer(false)
+    auth.logoutServer(false); // Promise lancée, pas besoin de await
 
     visibleAuth.value = true
-
-    // const result = await showSwal({
-    //   icon: 'warning',
-    //   title: 'Session expirée',
-    //   text: 'Votre session a expiré. Veuillez vous reconnecter.',
-    //   confirmButtonText: 'Ok',
-    //   allowOutsideClick: false,
-    //   allowEscapeKey: false,
-    // });
-
-    // if (result.isConfirmed) {
-    //     removeAllToasts();
-    //     preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
-    //         auth.logoutLocal(true);
-    //     });
-    // }
 
     swalShown = false;
   }
 );
+
 
 const containerClass = computed(() => {
     return {
@@ -336,7 +403,8 @@ function isOutsideClicked(event) {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(255,255,255,0.8);
+  /* background-color: rgba(255,255,255,0.8); */
+  background-color: white;
   display: flex;
   justify-content: center;
   align-items: center;

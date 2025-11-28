@@ -9,9 +9,12 @@
             />
             <p class="preloaderS-message">{{ preloaderSpinner.messageSpiner }}</p>
         </div>
+        <!-- confimrpopup pour le tableau sur les bouttons -->
         <ConfirmPopup></ConfirmPopup>
-        <!-- <ConfirmDialog group="positioned"></ConfirmDialog> -->
-        <ConfirmDialog group="headless" :style="{ width: '25rem' }">
+        <!-- ConfirmDialog pour la position -->
+        <ConfirmDialog group="positioned"></ConfirmDialog>
+        <!-- ConfirmDialog avec le point d'interrogation -->
+        <ConfirmDialog group="headless" :style="{ width: '25rem' }" :dismissableMask="false">
             <template #container="{ message, acceptCallback, rejectCallback }">
                 <div class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded">
                     <div class="rounded-full bg-primary text-primary-contrast inline-flex justify-center items-center h-24 w-24 -mt-20">
@@ -60,6 +63,29 @@
                 </div>
             </template>
         </Dialog>
+        <Drawer
+            v-model:visible="drawerUse.loading"
+            :position="drawerUse.position"
+            :dismissableMask="false"
+            :style="{ width: drawerUse.width }"
+        >
+            <template #header>
+                <div class="flex items-center gap-2">
+                    <Avatar v-if="drawerUse.icon" :icon="drawerUse.icon" class="mr-2" size="large" shape="circle" />
+                    <span class="font-bold">{{drawerUse.header}}</span>
+                </div>
+            </template>
+            <component
+                v-if="drawerUse.component"
+                :is="drawerUse.component"
+                v-bind="drawerUse.props"
+            />
+            <template #footer v-if="drawerUse.propsBtnFotter">
+                <div class="flex items-center gap-2">
+                    <Button v-for="item in drawerUse.propsBtnFotter.footerBtn" :id="item.id" :label="item.label" :icon="item.icon" class="flex-auto" :variant="item.variant" :severity="item.severity" @click="item.command"/>
+                </div>
+            </template>
+        </Drawer>
         <app-topbar ></app-topbar>
         <app-sidebar ></app-sidebar>
         <div class="layout-main-container" >
@@ -74,9 +100,17 @@
                             <div class="spinner-block block-3"></div>
                         </div>
                     </div>
-                    <!-- Contenu réel -->
                 </div>
                 <div v-else>
+                        <div class="py-2">
+                            <nav class="breadcrumb">
+                                <span class="breadcrumb-item" v-for="(item, i) in breadcrumbMenu.items" :key="i">
+                                  <i :class="item.icon" v-if="item.icon"></i>
+                                  {{ item.label }}
+                                  <span class="mx-1" v-if="i < breadcrumbMenu.items.length - 1 "> > </span>
+                                </span>
+                            </nav>
+                        </div>
                     <router-view></router-view>
                 </div>
             </div>
@@ -87,6 +121,7 @@
 </template>
 
 <script setup>
+import { getSecureItem } from "@/function/stores/secureStorage";
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 import { useLayout } from '@/layout/composables/layout';
 import AppFooter from './AppFooter.vue';
@@ -96,19 +131,25 @@ import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import { useAuthStore } from '@/function/stores/auth';
 import { useSwalAlert } from '@/function/function/SwalAlert';
 import { usePreloaderStore } from '@/function/stores/preloader';
+import { useDrawerStore } from '@/function/stores/drawer';
 import { useToastAlert } from '@/function/function/ToastAlert';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from '@/function/services/axios';
+import { useBreadcrumbMenuStore } from '@/function/stores/breadcrumbMenu';
+import { model, findBreadcrumb } from '@/layout/composables/menuUtils';
 
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
-const router = useRouter();
+const route = useRoute();   // route active
+const router = useRouter(); // pour naviguer si besoin
 const outsideClickListener = ref(null);
+const breadcrumbMenu = useBreadcrumbMenuStore();
 
 const auth = useAuthStore();
 const { showSwal } = useSwalAlert();
 const { showToast, removeAllToasts, removeAllExcept } = useToastAlert();
 const preloader = usePreloaderStore();
 const preloaderSpinner = usePreloaderSpinner();
+const drawerUse = useDrawerStore();
 
 const visibleAuth = ref(false);
 
@@ -132,16 +173,20 @@ const verifLoginForm = async () => {
 
     try {
 
+        const deviceId = getSecureItem("device_id");
+        const login = getSecureItem("aL");
+
         const res = await axios.post('/api/login', {
-            login: auth.user.login,
-            password: passwordAuth.value
+            login: login,
+            password: passwordAuth.value,
+            device_id: deviceId,
         });
 
         if (res.data.success) {
 
             const { access_token, refresh_token, user, expires_in } = res.data;
 
-            auth.setUserSession(user, expires_in, access_token, refresh_token);
+            auth.setUserSession(user, expires_in, access_token, refresh_token, deviceId);
 
             const mainId = showToast(
                 'success',
@@ -156,14 +201,19 @@ const verifLoginForm = async () => {
         } else if (res.data.info) {
             showToast('info', 'Informations', res.data.message);
         } else if (res.data.warn) {
-            showToast('warn', 'Alerte', res.data.message);
+            showToast('warn', 'Alerte', 'Mot de passe incorrect');
         } else {
             showToast('error', 'Erreur', res.data.message || 'Erreur inconnue');
         }
+
+        loadingAuth.value = false;
+        submitting = false;
     } 
     catch (err) {
         showToast('error', 'Erreur', err.message);
         auth.logoutLocal(false)
+        loadingAuth.value = false;
+        submitting = false;
     } 
     finally {
         loadingAuth.value = false;
@@ -239,7 +289,7 @@ router.afterEach(() => {
 });
 
 onMounted(() => {
-    // onPresetChange()
+
 })
 
 watch(isSidebarActive, (newVal) => {
@@ -249,37 +299,6 @@ watch(isSidebarActive, (newVal) => {
         unbindOutsideClickListener();
     }
 });
-
-// // 🕑 Surveille expiration du token
-// watch(
-//   () => auth.expired,
-//   async (val) => {
-//     if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
-//     swalShown = true;
-
-//     auth.logoutServer(false)
-
-//     visibleAuth.value = true
-
-//     // const result = await showSwal({
-//     //   icon: 'warning',
-//     //   title: 'Session expirée',
-//     //   text: 'Votre session a expiré. Veuillez vous reconnecter.',
-//     //   confirmButtonText: 'Ok',
-//     //   allowOutsideClick: false,
-//     //   allowEscapeKey: false,
-//     // });
-
-//     // if (result.isConfirmed) {
-//     //     removeAllToasts();
-//     //     preloaderSpinner.showSpiner('Déconnexion en cours...', () => {
-//     //         auth.logoutLocal(true);
-//     //     });
-//     // }
-
-//     swalShown = false;
-//   }
-// );
 
 watch(
   () => auth.expired,
@@ -295,6 +314,36 @@ watch(
   }
 );
 
+watch(() => drawerUse.loading, (isOpen) => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';        // Désactive le scroll global
+        document.documentElement.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';             // Réactive le scroll
+        document.documentElement.style.overflow = '';
+    }
+});
+
+// 🔥 Watcher sur la route
+watch(
+    () => route.path,
+    (newPath) => {
+        console.log('Route changée :', newPath);
+
+        const pathItems = findBreadcrumb(model.value, newPath);
+        if (pathItems) {
+            breadcrumbMenu.set([
+                // { icon: 'pi pi-home', to: '/' },
+                ...pathItems.map(i => ({
+                    label: i.label,
+                    // icon: i.icon,
+                    // to: i.to,
+                }))
+            ]);
+        }
+    },
+    { immediate: true }
+);
 
 const containerClass = computed(() => {
     return {
@@ -349,7 +398,7 @@ function isOutsideClicked(event) {
   transform: scale(0.95);
   transition: opacity 0.4s ease, transform 0.4s ease;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;

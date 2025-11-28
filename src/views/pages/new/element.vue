@@ -392,7 +392,7 @@
         </Drawer>
 
         <Drawer v-model:visible="visibleLeft" header="Left Drawer" class="!w-full md:!w-80 lg:!w-[30rem]">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <p> & Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
         </Drawer>
 
         <Drawer v-model:visible="visibleRight" header="Right Drawer" position="right">
@@ -420,7 +420,7 @@
         >
             <!-- HEADER -->
             <template #header="{ chooseCallback, uploadCallback, clearCallback, files: headerFiles }">
-                <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+                <div class="flex flex-col justify-between items-start flex-1 gap-4">
                     <div class="flex gap-2">
                         <Button @click="chooseCallback()" label="Choisir" icon="pi pi-images" rounded />
 
@@ -437,8 +437,20 @@
                         />
                     </div>
 
+                    <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+                        <div class="flex flex-wrap sm:flex-row gap-2 ">
+                            <Chip icon="pi pi-google" removable>
+                                Taille total des images inférieur ou égale à {{ formatSize(MAX_TOTAL_SIZE) }}
+                            </Chip>
+
+                            <Chip icon="pi pi-google" removable>
+                                1 image est inférieur ou égale à {{ formatSize(MAX_FILE_SIZE) }}
+                            </Chip>
+                        </div>
+                    </div>
+
                     <ProgressBar :value="totalSizePercent" :showValue="true" class="md:w-20rem w-full md:ml-auto h-1">
-                        <span>{{ formatSize(totalBytes) }} / 1 MB</span>
+                        <span>{{ formatSize(totalBytes) }} / {{ formatSize(MAX_TOTAL_SIZE) }}</span>
                     </ProgressBar>
                 </div>
             </template>
@@ -928,7 +940,7 @@ const visibleFull = ref(false);
 const visibleLogin = ref(false);
 const visibleMenu = ref(false);
 // --------------------------------------------------------------
-const MAX_TOTAL_SIZE = 1024 * 1024; // 1 MB réel
+const MAX_TOTAL_SIZE = (1024 * 1024) * 2; // 1 MB réel
 const MAX_FILE_SIZE = 1024 * 1024;  // idem
 const files = ref([]);        // fichiers sélectionnés
 const totalBytes = ref(0);    // taille totale en octets
@@ -1026,7 +1038,7 @@ const onTemplatedUpload = () => {
     severity: "success",
     summary: "Succès",
     detail: "Fichiers uploadés",
-    life: 3000,
+    life: 6000,
   });
 };
 // --------------------------------------------------------------

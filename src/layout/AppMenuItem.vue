@@ -3,29 +3,41 @@ import { useLayout } from '@/layout/composables/layout';
 import { onBeforeMount, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { usePreloaderStore } from "@/function/stores/preloader";
+import { useBreadcrumbMenuStore } from '@/function/stores/breadcrumbMenu';
+import { model, findBreadcrumb } from '@/layout/composables/menuUtils';
 
 const preloader = usePreloaderStore();
 const route = useRoute();
 
+const breadcrumbMenu = useBreadcrumbMenuStore();
+
 const { layoutState, setActiveMenuItem, toggleMenu } = useLayout();
 
 const props = defineProps({
-    item: {
-        type: Object,
-        default: () => ({})
-    },
-    index: {
-        type: Number,
-        default: 0
-    },
-    root: {
-        type: Boolean,
-        default: true
-    },
-    parentItemKey: {
-        type: String,
-        default: null
-    }
+  item: {
+    type: Object,
+    default: () => ({})
+  },
+  index: {
+    type: Number,
+    default: 0
+  },
+  root: {
+    type: Boolean,
+    default: true
+  },
+  parentItemKey: {
+    type: String,
+    default: null
+  },
+  model: {
+    type: Array,
+    default: () => []
+  },
+  findBreadcrumb: {
+    type: Function,
+    default: null
+  }
 });
 
 const isActiveMenu = ref(false);
@@ -97,6 +109,18 @@ function itemClick(event, item) {
     const foundItemKey = item.items ? (isActiveMenu.value ? props.parentItemKey : itemKey) : itemKey.value;
 
     setActiveMenuItem(foundItemKey);
+
+    // 🔥 Mise à jour du breadcrumb
+    // if (item.to) {
+    //     const path = findBreadcrumb(model.value, item.to);
+    //     console.log(item.to)
+    //     if (path) {
+    //         breadcrumbMenu.set([
+    //             { icon: 'pi pi-home', to: '/' },
+    //             ...path.map(i => ({ label: i.label, to: i.to, icon: i.icon }))
+    //         ]);
+    //     }
+    // }
 }
 
 function checkActiveRoute(item) {

@@ -1,16 +1,20 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, defineComponent, markRaw } from "vue";
 import { useAuthStore } from '@/function/stores/auth';
+import { useDrawerStore } from '@/function/stores/drawer';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 import { useToastAlert } from '@/function/function/ToastAlert';
 import { useConfirm } from "primevue/useconfirm";
 
+import NotificationList from "@/components/perso/NotificationList.vue";
+
 const auth = useAuthStore();
-const { removeAllToasts } = useToastAlert();
+const { showToast, removeAllToasts } = useToastAlert();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const preloaderSpinner = usePreloaderSpinner();
 const confirm = useConfirm();
+const drawerUse = useDrawerStore();
 
 const items = ref([
     {
@@ -22,21 +26,17 @@ const items = ref([
             {
                 label: 'Settings',
                 icon: 'pi pi-cog',
-            },
-            {
-                label: 'Messages',
-                icon: 'pi pi-inbox',
-                badge: 2
+                badge: 2,
             },
         ]
     },
     {
         separator: true
     },
-    {
+    {   
+        id: 'logout',
         label: 'Deconnexion',
         icon: 'pi pi-sign-out',
-        id: 'logout'
     }
 ]);
 
@@ -51,7 +51,57 @@ function formatTime(seconds) {
 const tempsToken = computed(() => formatTime(auth.tempsRestant));
 const tempsInactivite = computed(() => formatTime(auth.inactivityRestant));
 
-function handleItemClick (item, position) {
+// Notifications de test
+const fakeNotifs = [
+  { id: 1, title: "Nouveau message", message: "Message de Jean.", time: "Il y a 2min", icon: "pi pi-envelope", badge: "info" , badgeName: "standart" },
+  { id: 2, title: "Mise à jour", message: "MAJ dispo.", time: "Il y a 10min", icon: "pi pi-refresh", badge: "orange" , badgeName: "important" },
+  { id: 3, title: "Alerte système", message: "Problème serveur 3.", time: "Hier", icon: "pi pi-exclamation-triangle", badge: "danger" , badgeName: "urgent" },
+  { id: 4, title: "Alerte système", message: "Problème serveur 3.", time: "Hier", icon: "pi pi-exclamation-triangle", badge: "success" , badgeName: "éffectuée" },
+  { id: 5, title: "Alerte système", message: "Problème serveur 3.", time: "Hier", icon: "pi pi-exclamation-triangle", badge: "warning" , badgeName: "moins important" },
+  { id: 6, title: "Mise à jour", message: "MAJ dispo.", time: "Il y a 10min", icon: "pi pi-refresh", badge: "primary" , badgeName: "standart" },
+  { id: 1, title: "Nouveau message", message: "Message de Jean.", time: "Il y a 2min", icon: "pi pi-envelope", badge: "info" , badgeName: "standart" },
+  { id: 2, title: "Mise à jour", message: "MAJ dispo.", time: "Il y a 10min", icon: "pi pi-refresh", badge: "orange" , badgeName: "important" },
+  { id: 3, title: "Alerte système", message: "Problème serveur 3.", time: "Hier", icon: "pi pi-exclamation-triangle", badge: "danger" , badgeName: "urgent" },
+  { id: 4, title: "Alerte système", message: "Problème serveur 3.", time: "Hier", icon: "pi pi-exclamation-triangle", badge: "success" , badgeName: "éffectuée" },
+  { id: 5, title: "Alerte système", message: "Problème serveur 3.", time: "Hier", icon: "pi pi-exclamation-triangle", badge: "warning" , badgeName: "moins important" },
+  { id: 6, title: "Mise à jour", message: "MAJ dispo.", time: "Il y a 10min", icon: "pi pi-refresh", badge: "primary" , badgeName: "standart" },
+];
+
+const Btnfoter = [
+    {   
+        id: 'logout',
+        label: 'Voir plus',
+        icon: 'pi pi-eye',
+        variant: '',
+        severity: 'warn',
+    },
+    {   
+        id: 'logout',
+        label: 'Tout effacer',
+        icon: 'pi pi-times',
+        variant: 'outlined',
+        severity: 'danger',
+        command: () => {
+            drawerUse.hide(); 
+            showToast('success','Succès',`Notification supprimé`)
+        }
+    }
+];
+
+// Fonction pour ouvrir le Drawer
+function showNotifications() {
+  drawerUse.show(
+    "Notifications",
+    "pi pi-bell",
+    "right",
+    "26rem",
+    markRaw(NotificationList),
+    { data: fakeNotifs },
+    { footerBtn: Btnfoter }
+  );
+}
+
+function handleItemClick (item, position = 'center') {
     if (item.id === "logout") {
         confirm.require({
             // group: 'positioned',
@@ -84,8 +134,13 @@ function handleItemClick (item, position) {
                 return false;
             }
         });
+
     }
 };
+
+onMounted(() => {
+    console.log('lancé')
+})
 
 </script>
 
@@ -117,6 +172,16 @@ function handleItemClick (item, position) {
             <div class="relative">
                 <button
                     class="layout-topbar-action"
+                    @click="showNotifications"
+                    badge="2"
+                >
+                    <i class="pi pi-bell"></i>
+                </button>
+            </div>
+
+            <div class="relative">
+                <button
+                    class="layout-topbar-action"
                     v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
                 >
                     <i class="pi pi-user"></i>
@@ -129,7 +194,7 @@ function handleItemClick (item, position) {
                         <Menu :model="items" class="w-full">
                             <template #start>
                                 <button v-ripple class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200">
-                                    <Avatar size="large" image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" class="mr-2" shape="circle" />
+                                    <Avatar icon="pi pi-user" class="mr-2" size="large" shape="circle" />
                                     <span class="inline-flex flex-col items-start">
                                         <span class="font-bold text-lg">{{ auth.user?.email || 'Invité' }}</span>
                                         <span class="text-md">Admin</span>
@@ -140,7 +205,7 @@ function handleItemClick (item, position) {
                                 <span class="text-primary font-bold">{{ item.label }}</span>
                             </template>
                             <template #item="{ item, props }">
-                                <a v-ripple class="flex items-center" v-bind="props.action" :id="item.id" @click="handleItemClick(item, 'top')">
+                                <a v-ripple class="flex items-center" v-bind="props.action" :id="item.id" @click="handleItemClick(item)">
                                     <span :class="item.icon" />
                                     <span>{{ item.label }}</span>
                                     <Badge v-if="item.badge" class="ml-auto" :value="item.badge" />

@@ -135,7 +135,7 @@ const connectLoginForm = async () => {
         } else if (res.data.info) {
             showToast('info', 'Informations', res.data.message);
         } else if (res.data.warn) {
-            showToast('warn', 'Alerte', 'Mot de passe incorrect');
+            showToast('warn', 'Alerte', res.data.message);
         } else {
             showToast('error', 'Erreur', res.data.message || 'Erreur inconnue');
         }

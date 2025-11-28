@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, computed,nextTick } from 'vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -14,6 +14,7 @@ import { excelUser } from '@/export/excel/excel_user.js';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
 import { useConfirm } from "primevue/useconfirm";
 import { useAuthStore } from '@/function/stores/auth';
+import { formaDateHeure } from '@/function/services/format';
 
 const auth = useAuthStore();
 const { showToast } = useToastAlert();
@@ -74,6 +75,21 @@ const closeModal = () => {
     userSelected.value = {};
 };
 
+const rowsPerPage = ref(10); // correspond à :rows="10"
+const currentPage = ref(1);
+const totalRows = computed(() => users.value.length);
+
+function onPage(event) {
+    currentPage.value = event.page + 1;
+    rowsPerPage.value = event.rows;   // <<< SUPER IMPORTANT
+}
+
+const totalPages = computed(() => {
+    return users.value.length && rowsPerPage.value
+        ? Math.ceil(users.value.length / rowsPerPage.value)
+        : 1;
+});
+
 const getLignesPageCourante = () => {
     if (!dt.value) return [];
 
@@ -122,25 +138,6 @@ const handleExportEXCEL = () => {
     });
 };
 
-function formatDateHeure(value) {
-    if (!value) return '';
-
-    // Convertit en objet Date même si " " à la place de "T"
-    const date = new Date(value.replace(' ', 'T'));
-
-    if (isNaN(date.getTime())) return value; // si conversion échoue
-
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-
-    return `${day}/${month}/${year} à ${hours}:${minutes}:${seconds}`;
-}
-
 const exportItemsPdf = [
     {
         label: 'Liste User',
@@ -165,7 +162,7 @@ const exportItemsExcel = [
 const actionItems = (user) => [
     { label: 'Détails', icon: 'pi pi-eye', command: () => openModal(user) },
     { label: 'Modifier', icon: 'pi pi-pencil', command: () => showToast('info','Modifier',`Modifier ${user.name}`) },
-    { separator: true }
+    // { separator: true }
 ];
 
 const deleteTable = (event, data) => {
@@ -197,6 +194,8 @@ onMounted(() => {
 
 </script>
 
+// :rowsPerPageOptions="[5,10,20,50]"
+
 <template>
     <div class="card">
         <div class="flex justify-between items-center mb-4">
@@ -206,14 +205,14 @@ onMounted(() => {
         <DataTable
             ref="dt"
             :value="users"
+            :rows="rowsPerPage"
             :paginator="true"
-            :rowsPerPageOptions="[5,10,20,50]"
-            :rows="10"
+            @page="onPage"
             dataKey="id"
             :rowHover="true"
             v-model:filters="filters"
             filterDisplay="menu"
-            :globalFilterFields="['name','email','login']"
+            :globalFilterFields="['name','email','roles','login']"
             scrollable
             scrollHeight="auto"
         >
@@ -238,7 +237,7 @@ onMounted(() => {
                     </FloatLabel>
                     <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
                         <Button type="button" icon="pi pi-filter-slash" label="Filtre" @click="initFilters"/>
-                        <Button type="button" icon="pi pi-refresh" @click="fetchUsers(true)" severity="warn" :disabled="loadingBtn" :loading="loadingBtn" :label="loadingBtn ? 'Actualisation en cours...' : 'Actualiser'"/>
+                        <Button type="button" icon="pi pi-refresh" @click="fetchUsers(true)" severity="warn" :disabled="loadingBtn" :loading="loadingBtn" :label="loadingBtn ? 'en cours...' : 'Actualiser'"/>
                         <SplitButton label="Pdf" icon="pi pi-file-pdf" :model="exportItemsPdf" severity="danger" />
                         <SplitButton label="Excel" icon="pi pi-file-excel" :model="exportItemsExcel" severity="success" />
                     </div>
@@ -253,9 +252,9 @@ onMounted(() => {
             </template>
 
             <Column field="id" header="N°" style="width:5%">
-                <template #body="{ index  }">
+                <template #body="{ index }">
                     <Skeleton v-if="loading" width="2rem" height="1rem"/>
-                    <span v-else>{{ index + 1 }}</span>
+                    <span v-else>{{ (currentPage - 1) * rowsPerPage + index + 1 }}</span>
                 </template>
             </Column>
 
@@ -273,16 +272,23 @@ onMounted(() => {
                             <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-800">
                                 <i class="pi pi-user text-white"></i>
                             </div>
-                            <span>{{ data.name }}</span>
+                            <div class="flex flex-col">
+                                <span class="text-md">
+                                    {{ data.name }}
+                                </span>
+                                <span class="text-sm text-gray-600" >
+                                    {{ data.email }}
+                                </span>
+                            </div>
                         </div>
                     </template>
                 </template>
             </Column>
 
-            <Column field="email" header="Email" style="min-width: 10rem">
+            <Column field="roles" header="Rôle" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Skeleton v-if="loading" width="10rem" height="1rem"/>
-                    <span v-else>{{ data.email }}</span>
+                    <span v-else>{{ data.roles ?? 'Employé' }}</span>
                 </template>
             </Column>
 
@@ -296,7 +302,7 @@ onMounted(() => {
             <Column field="created_at" header="Date de création" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Skeleton v-if="loading" width="12rem" height="1rem"/>
-                    <span v-else>{{ formatDateHeure(data.created_at) }}</span>
+                    <span v-else>{{ formaDateHeure(data.created_at) }}</span>
                 </template>
             </Column>
 
@@ -324,6 +330,13 @@ onMounted(() => {
                 </template>
             </Column>
 
+            <template #footer>
+                <div class="flex justify-between items-center p-3">
+                    <span>{{ totalRows.toLocaleString() }} lignes trouvées</span>
+
+                    <span>Page {{ currentPage }} sur {{ totalPages.toLocaleString() }}</span>
+                </div>
+            </template>
         </DataTable>
 
         <Dialog header="Détails utilisateur" v-if="showModal && userSelected" v-model:visible="showModal" :modal="true" :closable="true">

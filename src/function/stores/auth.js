@@ -44,21 +44,12 @@ export const useAuthStore = defineStore("auth", {
       this.manualLogout = false;
       this.device_id = device_id;
 
-      console.log(token)
-
       setSecureItem("jwt_token", token);
       setSecureItem("refresh_token", refreshToken);
       setSecureItem("session_expire", expireAt);
       setSecureItem("session_expired", "false");
       setSecureItem("device_id", device_id);
-
-      console.log(getSecureItem("jwt_token"))
-
-      const original = token;
-      const retrieved = getSecureItem("jwt_token");
-
-      console.log(original === retrieved); // true ✅
-
+      setSecureItem("aL", user.login);
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -88,13 +79,12 @@ export const useAuthStore = defineStore("auth", {
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      console.log(token);
-
       if (getSecureItem("session_expired")) return false;
 
       try {
-        const res = await axios.get("/api/me"); // <-- await ici
+        const res = await axios.get("/api/me");
         this.user = res.data;
+        setSecureItem("aL", res.data.login);
       } catch (err) {
         console.log("expired");
         this.user = null;
@@ -110,6 +100,11 @@ export const useAuthStore = defineStore("auth", {
     // ------------------------------------------------------
     async refreshAccessToken() {
       if (!this.refreshToken) return null;
+
+      const savedDeviceId = getSecureItem("device_id");
+      this.device_id = savedDeviceId;
+
+      console.log(this.device_id)
 
       try {
         const res = await axios.post("/api/refresh", {
@@ -150,7 +145,41 @@ export const useAuthStore = defineStore("auth", {
       clearInterval(countdownInterval);
       if (!this.sessionExpire) return;
 
-      const checkToken = async () => {
+      // const checkToken = async () => {
+      //   const now = Date.now();
+      //   const diff = Math.floor((this.sessionExpire - now) / 1000);
+      //   this.tempsRestant = diff > 0 ? diff : 0;
+
+      //   if (diff <= 0) {
+      //     clearInterval(countdownInterval);
+      //     this.setExpired();
+      //     this.clearInactivityTimer();
+      //     return;
+      //   }
+
+      //   // 🔹 Refresh automatique si < 5 min
+      //   if (diff <= 60 && !this._refreshing) {
+      //     const stillActive = this.inactivityExpireAt && now < this.inactivityExpireAt;
+
+      //     if (stillActive) {
+      //       console.log('fin timer token 2')
+      //       try {
+      //         await this.refreshAccessToken();
+      //       } finally {
+      //         this._refreshing = false;
+      //       }
+      //     } else {
+      //       console.log("⚠️ Token non rafraîchi car inactif");
+      //       this.setExpired();
+      //       this.clearInactivityTimer();
+      //       clearInterval(countdownInterval);
+      //     }
+      //   }
+      // };
+
+      countdownInterval = setInterval(async () => {
+        // checkToken();
+
         const now = Date.now();
         const diff = Math.floor((this.sessionExpire - now) / 1000);
         this.tempsRestant = diff > 0 ? diff : 0;
@@ -167,9 +196,12 @@ export const useAuthStore = defineStore("auth", {
           const stillActive = this.inactivityExpireAt && now < this.inactivityExpireAt;
 
           if (stillActive) {
-            this._refreshing = true;
-            await this.refreshAccessToken(); // ✅ ok maintenant
-            this._refreshing = false;
+            console.log('fin timer token 2')
+            try {
+              await this.refreshAccessToken();
+            } finally {
+              this._refreshing = false;
+            }
           } else {
             console.log("⚠️ Token non rafraîchi car inactif");
             this.setExpired();
@@ -177,10 +209,7 @@ export const useAuthStore = defineStore("auth", {
             clearInterval(countdownInterval);
           }
         }
-      };
 
-      countdownInterval = setInterval(() => {
-        checkToken();
       }, 1000);
     },
 
@@ -243,6 +272,7 @@ export const useAuthStore = defineStore("auth", {
       removeSecureItem("refresh_token");
       removeSecureItem("session_expire");
       removeSecureItem("device_id");
+      removeSecureItem("aL");
 
       delete axios.defaults.headers.common["Authorization"];
 
@@ -266,8 +296,7 @@ export const useAuthStore = defineStore("auth", {
       this.isLoggingOut = true;
 
       if (!this.refreshToken) {
-        this.logoutLocal();
-        this.isLoggingOut = false;
+        this.logoutLocal(true);
         return;
       }
 
@@ -278,15 +307,13 @@ export const useAuthStore = defineStore("auth", {
           this.expired = manuel;
           removeSecureItem("jwt_token");
           removeSecureItem("refresh_token");
-          removeSecureItem("device_id");
           console.log("User déconnecté backend");
         })
         .catch(() => {})
         .finally(() => {
           this.isLoggingOut = false;
           if (manuel === true) {
-            this.logoutLocal();
-            router.push({ name: "Authentification" });
+            this.logoutLocal(true);
           }
         });
     },

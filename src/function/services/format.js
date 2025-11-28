@@ -16,3 +16,8 @@ export function formaDateHeure(value) {
 
   return `${day}/${month}/${year} à ${hours}:${minutes}:${seconds}`;
 }
+
+export function isValidEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}

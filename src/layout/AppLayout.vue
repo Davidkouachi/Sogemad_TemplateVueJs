@@ -1,6 +1,8 @@
 <template>
     <div class="layout-wrapper" :class="containerClass">
-        <div v-if="preloaderSpinner.loadingSpiner" class="preloaderS-overlay">
+        <div v-if="preloaderSpinner.loadingSpiner" 
+             class="preloaderS-overlay" 
+             :style="{ backgroundColor: preloaderSpinner.backgroundColor }">
             <ProgressSpinner
                 style="width: 30px; height: 30px"
                 strokeWidth="8"
@@ -56,6 +58,14 @@
                                         :disabled="loadingAuth"
                                         :label="loadingAuth ? 'Vérification en cours...' : 'Verfier'"
                                     />
+                                    <Button
+                                        size="large"
+                                        class="w-full"
+                                        severity="primary"
+                                        :disabled="loadingAuth"
+                                        label="Authentification"
+                                        @click="goToLogin"
+                                    />
                                 </div>
                             </div>
                         </form>
@@ -102,9 +112,9 @@
                     </div>
                 </div>
                 <div v-else>
-                        <div class="py-2">
+                        <div class="py-2 mb-1">
                             <nav class="breadcrumb">
-                                <span class="breadcrumb-item" v-for="(item, i) in breadcrumbMenu.items" :key="i">
+                                <span v-for="(item, i) in breadcrumbMenu.items" :key="i">
                                   <i :class="item.icon" v-if="item.icon"></i>
                                   {{ item.label }}
                                   <span class="mx-1" v-if="i < breadcrumbMenu.items.length - 1 "> > </span>
@@ -158,6 +168,14 @@ const loadingAuth = ref(false);
 
 let swalShown = false;
 let submitting = false;
+
+const goToLogin = () => {
+    preloaderSpinner.showSpiner('Rédirection en cours...', () => {
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    });
+};
 
 const verifLoginForm = async () => {
     if (submitting) return;   // 🔥 empêche 100% des doubles appels
@@ -218,6 +236,7 @@ const verifLoginForm = async () => {
     finally {
         loadingAuth.value = false;
         submitting = false;   // 🔥 permet à nouveau un clic, mais jamais double
+        passwordAuth.value = '';
     }
 };
 
@@ -302,19 +321,52 @@ watch(isSidebarActive, (newVal) => {
 
 watch(
   () => auth.expired,
-  (val) => {
+  async (val) => {
     if (!val || swalShown || auth.manualLogout || auth.isLoggingOut) return;
     swalShown = true;
 
-    auth.logoutServer(false); // Promise lancée, pas besoin de await
+    auth.logoutServer(false);
 
-    visibleAuth.value = true
+    const souvenir = getSecureItem('me');
+
+    if (souvenir) {
+        visibleAuth.value = true;
+    } else {
+        const result = await showSwal({
+            icon: 'warning',
+            title: 'Session expirée',
+            text: 'Votre session a expiré. Veuillez vous reconnecter.',
+            confirmButtonText: 'Ok',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        });
+
+        if (result.isConfirmed) {
+            preloaderSpinner.showSpiner('Rédirection en cours...', () => {
+                setTimeout(() => {
+                    auth.logoutLocal(true);
+                }, 1000);
+            });
+        }
+    }
 
     swalShown = false;
   }
 );
 
 watch(() => drawerUse.loading, (isOpen) => {
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';        // Désactive le scroll global
+        document.documentElement.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';             // Réactive le scroll
+        document.documentElement.style.overflow = '';
+    }
+});
+
+watch(() => visibleAuth.value, (isOpen) => {
+    console.log(isOpen)
+
     if (isOpen) {
         document.body.style.overflow = 'hidden';        // Désactive le scroll global
         document.documentElement.style.overflow = 'hidden';
@@ -452,8 +504,6 @@ function isOutsideClicked(event) {
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* background-color: rgba(255,255,255,0.8); */
-  background-color: white;
   display: flex;
   justify-content: center;
   align-items: center;

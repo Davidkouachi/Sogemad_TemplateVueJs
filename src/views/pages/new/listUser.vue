@@ -41,7 +41,7 @@ function initFilters() {
     };
 }
 
-const fetchUsers = async (loaderBtn = false) => {
+const fetchUsers = async (loaderBtn = false, callback) => {
     loading.value = true;
     loadingBtn.value = loaderBtn;
     users.value = new Array(10).fill({});
@@ -60,6 +60,12 @@ const fetchUsers = async (loaderBtn = false) => {
     } finally {
         loading.value = false;
         loadingBtn.value = false;
+
+        // ⚡ Vérifie que callback est défini avant d'appeler
+        if (typeof callback === 'function') {
+            callback();
+        }
+
         await nextTick();
         initFilters(false)
     }
@@ -135,7 +141,7 @@ const handleExportEXCEL = () => {
         setTimeout(() => {
             excelUser(donnees);
         }, 200); 
-    });
+    },);
 };
 
 const exportItemsPdf = [
@@ -179,14 +185,55 @@ const deleteTable = (event, data) => {
             label: 'Oui',
             severity: 'success'
         },
-        accept: () => {
-            showToast('success', 'Alerte', 'Opération éffectuée.');
+        accept: async () => {
+
+            preloaderSpinner.showSpiner(
+                'Opération en cours...', 
+                async () => { 
+                    await deleteUser(data.id);
+                }, 
+                'rgba(255,255,255,0.9)'
+            );
         },
         reject: () => {
-            showToast('info', 'Alerte', 'Opération non éffectuée.');
+            // showToast('info', 'Alerte', 'Opération non éffectuée.');
         }
     });
 };
+
+// Fonction deleteUser
+async function deleteUser(id) {
+    try {
+        const res = await axios.delete('/api/deleteUser/' + id);
+        const data = res.data;
+
+        preloaderSpinner.hideSpiner();
+
+        if (data.success) {
+
+            preloaderSpinner.showSpiner(
+                'Opération terminée, actualisation des données...', 
+                () => { 
+                    fetchUsers(
+                        false, 
+                        () => {
+                            preloaderSpinner.hideSpiner();
+                            showToast('success', 'Succès', 'Opération éffectuée');
+                        }
+                    ); 
+                }, 
+                'rgba(255,255,255,0.9)'
+            );
+
+        } else if (data.info) {
+            showToast('info', 'Informations', data.message);
+        } else {
+            showToast('error', 'Erreur', data.message || 'Erreur inconnue');
+        }
+    } catch (err) {
+        showToast('error', 'Erreur', err.message || 'Erreur inattendue');
+    }
+}
 
 onMounted(() => {
     fetchUsers();
@@ -334,7 +381,7 @@ onMounted(() => {
                 <div class="flex justify-between items-center p-3">
                     <span>{{ totalRows.toLocaleString() }} lignes trouvées</span>
 
-                    <span>Page {{ currentPage }} sur {{ totalPages.toLocaleString() }}</span>
+                    <span>{{ currentPage }} sur {{ totalPages.toLocaleString() }} Page(s)</span>
                 </div>
             </template>
         </DataTable>

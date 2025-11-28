@@ -5,7 +5,7 @@ import { ref } from "vue";
 import { setSecureItem, getSecureItem, removeSecureItem } from "@/function/stores/secureStorage";
 
 let countdownInterval = null;
-let inactivityMin = 30;
+let inactivityMin = 1;
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -282,6 +282,7 @@ export const useAuthStore = defineStore("auth", {
       });
 
       if (expired === true) {
+        removeSecureItem("me");
         router.push({ name: "Authentification" }).finally(() => {
           this.isLoggingOut = false;
         });

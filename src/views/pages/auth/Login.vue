@@ -55,6 +55,7 @@ import { removeLogoutPreloaderAndToast } from '@/function/appGlobal';
 import { useAuthStore } from '@/function/stores/auth';
 import { useRouter } from 'vue-router';
 import { usePreloaderSpinner } from '@/function/function/showPreloader';
+import { setSecureItem, getSecureItem, removeSecureItem } from "@/function/stores/secureStorage";
 
 const auth = useAuthStore();
 const preloaderSpinner = usePreloaderSpinner();
@@ -71,7 +72,7 @@ const backgroundImage = new URL('@/assets/img/plan1.jpg', import.meta.url).href
 let submitting = false;
 
 function getDeviceId() {
-    let id = localStorage.getItem("device_id");
+    let id = getSecureItem("device_id");
 
     if (!id) {
         if (crypto.randomUUID) {
@@ -84,7 +85,7 @@ function getDeviceId() {
                 return v.toString(16);
             });
         }
-        localStorage.setItem("device_id", id);
+        setSecureItem("device_id", id);
     }
 
     return id;
@@ -128,7 +129,8 @@ const connectLoginForm = async () => {
                 '1'
             );
 
-            localStorage.setItem('nu', user.name);
+            setSecureItem('nu', user.name);
+            setSecureItem('me', checked.value ? 'true' : 'false');
         
             router.push({ name: 'dashboard' });
 
@@ -158,6 +160,15 @@ onMounted(() => {
     console.log('fn lancé')
     removeLogoutPreloaderAndToast(showToast);
   }
+
+    removeSecureItem("jwt_token");
+    removeSecureItem("refresh_token");
+    removeSecureItem("session_expire");
+    removeSecureItem("session_expired");
+    removeSecureItem("device_id");
+    removeSecureItem("aL");
+    removeSecureItem("nu");
+    removeSecureItem("me");
 })
 
 </script>

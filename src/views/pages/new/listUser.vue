@@ -1,18 +1,5 @@
-<!-- <Column
-    selectionMode="multiple"
-    headerStyle="width:3rem"
-    style="width:3rem"
->
-    <template #body="{ data }">
-        <Checkbox
-            :value="data"
-            disabled="auth.user && auth.user.login === data.login"
-        />
-    </template>
-</Column> -->
-            
 <script setup>
-import { ref, onMounted, computed,nextTick } from 'vue';
+import { ref, onMounted, computed,nextTick, watch } from 'vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -253,12 +240,81 @@ const showSelected = () => {
     const data = JSON.parse(JSON.stringify(selectedUsers.value));
     console.log("Sélection :", data);
 
-    showToast('info', 'Sélection', data.length + ' ligne(s) sélectionnée(s)');
+    // showToast('info', 'Sélection', data.length + ' ligne(s) sélectionnée(s)');
+
+    // // Désélectionner uniquement les utilisateurs qui respectent la condition
+    // selectedUsers.value = selectedUsers.value
+    //     .filter(u => auth.user && auth.user.login != u.login)
+    //     .map(u => ({ ...u }));
+
+    // const dataD = JSON.parse(JSON.stringify(selectedUsers.value));
+    // console.log("Après désélection :", dataD);
 };
 
 onMounted(() => {
     fetchUsers();
 });
+
+// watch(selectedUsers, (newVal, oldVal) => {
+//     // Filtrer les lignes non autorisées
+//     const filtered = newVal.filter(u => auth.user && auth.user.login !== u.login);
+
+//     if (filtered.length !== newVal.length) {
+//         nextTick(() => {
+//             selectedUsers.value = filtered.map(u => ({ ...u }));
+//         });
+//     }
+
+//     // Détecter ajout ou suppression
+//     const added = newVal.filter(u => !oldVal.some(o => o.id === u.id));
+//     const removed = oldVal.filter(u => !newVal.some(n => n.id === u.id));
+
+//     if (added.length > 1) {
+//         // checkboxAll
+//         console.log("Checkbox All sélectionné", added.map(u => u.id));
+//         showToast('info', 'Sélection', 'Toutes les lignes ont été sélectionnées');
+//     } else if (added.length === 1) {
+//         // ligne individuelle
+//         console.log("Checkbox d'une ligne sélectionnée:", added[0].id);
+//         showToast('info', 'Sélection', `Ligne sélectionnée : ${added[0].id}`);
+//     }
+
+//     if (removed.length > 1) {
+//         console.log("Checkbox All désélectionné", removed.map(u => u.id));
+//         showToast('info', 'Sélection', 'Toutes les lignes ont été désélectionnées');
+//     } else if (removed.length === 1) {
+//         console.log("Checkbox d'une ligne désélectionnée:", removed[0].id);
+//         showToast('info', 'Sélection', `Ligne désélectionnée : ${removed[0].id}`);
+//     }
+
+// }, { deep: true });
+
+watch(selectedUsers, (newVal, oldVal) => {
+    // Détecter les lignes ajoutées
+    const added = newVal.filter(u => !oldVal.some(o => o.id === u.id));
+    if (!added.length) return; // rien de nouveau
+
+    // Filtrer les lignes non autorisées
+    const disallowed = added.filter(u => auth.user && auth.user.login === u.login);
+    if (!disallowed.length) return; // toutes les lignes sont autorisées
+
+    // Vérifier si c'est un checkboxAll (plus d'une ligne ajoutée)
+    if (added.length > 1) {
+        const logins = disallowed.map(u => u.login).join(', ');
+        showToast('info', 'Lignes non autorisées', `Tentative de sélection globale des lignes non autorisées : ${logins}`);
+        console.log("Checkbox All - lignes non autorisées :", disallowed);
+    } else if (added.length === 1) {
+        showToast('info', 'Ligne non autorisée', `Tentative de sélection d'une ligne non autorisée : ${disallowed[0].login}`);
+        console.log("Ligne non autorisée :", disallowed[0]);
+    }
+
+    // Retirer automatiquement les lignes non autorisées
+    nextTick(() => {
+        selectedUsers.value = newVal.filter(u => auth.user && auth.user.login !== u.login);
+    });
+
+}, { deep: true });
+
 
 </script>
 

@@ -63,7 +63,7 @@
                         </div>
                     </Step>
                     <Step v-slot="{ value, a11yAttrs }" asChild :value="2">
-                        <div class="flex flex-row pl-2" v-bind="a11yAttrs.root">
+                        <div class="flex flex-row flex-auto gap-2" v-bind="a11yAttrs.root">
                             <button class="bg-transparent border-0 inline-flex flex-col gap-2">
                                 <span
                                     :class="[
@@ -72,6 +72,21 @@
                                     ]"
                                 >
                                     <i class="pi pi-id-card" />
+                                </span>
+                            </button>
+                            <Divider />
+                        </div>
+                    </Step>
+                    <Step v-slot="{ value, a11yAttrs }" asChild :value="3">
+                        <div class="flex flex-row pl-2" v-bind="a11yAttrs.root">
+                            <button class="bg-transparent border-0 inline-flex flex-col gap-2">
+                                <span
+                                    :class="[
+                                        'rounded-full border-2 w-12 h-12 inline-flex items-center justify-center',
+                                        { 'bg-primary text-primary-contrast border-primary': value <= activeStep, 'border-surface-200 dark:border-surface-700': value > activeStep }
+                                    ]"
+                                >
+                                    <i class="pi pi-key" />
                                 </span>
                             </button>
                         </div>
@@ -128,10 +143,45 @@
                                 severity="success" 
                                 icon="pi pi-check-circle" 
                                 iconPos="right" 
-                                @click="verifMdp2"
+                                @click="verifMdp2(activateCallback)"
                                 :loading="loadingstep2"
                                 :disabled="loadingstep2"
                                 :label="loadingstep2 ? 'Vérification en cours...' : 'Verification'"
+                            />
+                        </div>
+                    </StepPanel>
+                    <StepPanel v-slot="{ activateCallback }" :value="3">
+                        <div class="flex justify-center mx-auto mb-5" style="max-width: 20rem">
+                            <div class="flex flex-col gap-3 mx-auto mb-15 w-full">
+                                <div class="font-bold text-xl mb-5 text-center">
+                                    Mise à jour du mot de passe
+                                </div>
+                                <Password id="password" v-model="key_Mdp1" placeholder="Nouveau mot de passe" :toggleMask="true" class="" fluid :feedback="true" weakLabel="Petit" mediumLabel="Moyen" strongLabel="Bien" promptLabel="Entrez un mot de passe">
+                                    <template #header>
+                                        <div class="font-semibold text-xm mb-4">Conditions</div>
+                                    </template>
+                                    <template #footer>
+                                        <Divider />
+                                        <ul class="pl-2 my-0 leading-normal text-sm">
+                                            <li>✔ 1 minuscule</li>
+                                            <li>✔ 1 majuscule</li>
+                                            <li>✔ 1 chiffre</li>
+                                            <li>✔ 8 caractères minimum</li>
+                                        </ul>
+                                    </template>
+                                </Password>
+                                <Password placeholder="Confirmer le mot de passe" :feedback="false" fluid v-model="key_Mdp2" :toggleMask="true"/>
+                            </div>
+                        </div>
+                        <div class="flex pt-0 justify-center">
+                            <Button
+                                severity="success" 
+                                icon="pi pi-check-circle" 
+                                iconPos="right" 
+                                @click="verifMdp3"
+                                :loading="loadingstep3"
+                                :disabled="loadingstep3"
+                                :label="loadingstep3 ? 'Opération en cours...' : 'Enregistrer'"
                             />
                         </div>
                     </StepPanel>
@@ -162,6 +212,8 @@ const { showToast, removeAllToasts, removeAllExcept } = useToastAlert();
 const activeStep = ref(1);
 const email_Mdp = ref();
 const otp_Mdp = ref(null);
+const key_Mdp1 = ref(null);
+const key_Mdp2 = ref(null);
 
 const canResend = ref(false);
 const timeLeft = ref(60);
@@ -179,6 +231,7 @@ const router = useRouter();
 
 const loadingstep1 = ref(false);
 const loadingstep2 = ref(false);
+const loadingstep3 = ref(false);
 const loadingrenvoie = ref(false)
 
 const visible = ref(false);
@@ -231,8 +284,11 @@ function openMdp() {
     visible.value = true;
     email_Mdp.value = '';
     otp_Mdp.value = null;
+    key_Mdp1.value = null;
+    key_Mdp2.value = null;
     loadingstep1.value = false;
     loadingstep2.value = false;
+    loadingstep3.value = false;
     loadingrenvoie.value = false;
     canResend.value = false;
     timeLeft.value = 60;
@@ -263,7 +319,7 @@ function verifMdp1(Callback) {
   
 }
 
-function verifMdp2() {
+function verifMdp2(Callback) {
 
     const otp = otp_Mdp.value?.trim() || '';
     const otpRegex = /^\d{3}-\d{3}-\d{3}$/;
@@ -283,10 +339,42 @@ function verifMdp2() {
 
     setTimeout(() => {
         loadingstep2.value = false;
+        showToast('success', 'Succès', 'Code validé');
+        Callback(3);
+    }, 5000);
+
+}
+
+const passwordValid = computed(() => {
+    const pw = key_Mdp1.value;
+
+    return (
+        pw.length >= 8 &&
+        /[a-z]/.test(pw) &&       // minuscule
+        /[A-Z]/.test(pw) &&       // majuscule
+        /\d/.test(pw)             // chiffre
+    );
+});
+
+function verifMdp3() {
+
+    if (!key_Mdp1.value || !key_Mdp1.value) {
+      showToast('warn', 'Alerte', 'mot de passe incorrect');
+      return;
+    }
+
+    if (!passwordValid.value) {
+        showToast('warn', 'Mot de passe invalide', 'Veuillez respecter les conditions du mot de passe');
+        return;
+    }
+
+    loadingstep3.value = true;
+
+    setTimeout(() => {
+        loadingstep3.value = false;
         visible.value = false;
         showToast('success', 'Succès', 'Mise à jour du mot de passe effectuée');
     }, 5000);
-
 }
 
 async function resendCode() {

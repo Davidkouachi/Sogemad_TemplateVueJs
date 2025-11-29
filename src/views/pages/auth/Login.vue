@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <Dialog v-model:visible="visible" modal header="Mot de passe Oublié" :style="{ width: '26.5rem' }">
+    <Dialog v-model:visible="visible" modal header="Mot de passe Oublié" :style="{ width: '35rem' }">
         <div class="card flex justify-center">
             <Stepper v-model:value="activeStep" class="basis-[40rem]">
                 <StepList>
@@ -110,13 +110,12 @@
                                 <InputMask id="basic" v-model="otp_Mdp" mask="999-999-999" placeholder="999-999-999" class="text-center w-full"/>
                                 <div class="flex justify-between mt-5 self-stretch">
                                     <Button 
-                                        label="Renvoyer le Code"
                                         link
                                         class="p-0"
                                         @click="resendCode"
                                         :disabled="!canResend"
+                                        :label="loadingrenvoie ? `en cours d'envoi...` : `Renvoyer le code`"
                                     />
-
                                     <Chip 
                                         :label="formatTime(timeLeft)"
                                         icon="pi pi-clock"
@@ -180,6 +179,7 @@ const router = useRouter();
 
 const loadingstep1 = ref(false);
 const loadingstep2 = ref(false);
+const loadingrenvoie = ref(false)
 
 const visible = ref(false);
 
@@ -233,6 +233,7 @@ function openMdp() {
     otp_Mdp.value = null;
     loadingstep1.value = false;
     loadingstep2.value = false;
+    loadingrenvoie.value = false;
     canResend.value = false;
     timeLeft.value = 60;
     intervalId = null;
@@ -291,8 +292,11 @@ function verifMdp2() {
 async function resendCode() {
     if (!canResend.value) return;
 
+    loadingrenvoie.value = true;
+
     setTimeout(() => {
         // Incrémenter le compteur de renvois
+        loadingrenvoie.value = false;
         resendCount.value++;
         showToast('success', 'Envoyé', 'Un nouveau code a été envoyé.');
         startTimer();

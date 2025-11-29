@@ -1,3 +1,16 @@
+<!-- <Column
+    selectionMode="multiple"
+    headerStyle="width:3rem"
+    style="width:3rem"
+>
+    <template #body="{ data }">
+        <Checkbox
+            :value="data"
+            disabled="auth.user && auth.user.login === data.login"
+        />
+    </template>
+</Column> -->
+            
 <script setup>
 import { ref, onMounted, computed,nextTick } from 'vue';
 import axios from 'axios';
@@ -30,6 +43,7 @@ const userSelected = ref({});
 const globalFilter = ref('');
 const dt = ref(null); // ref vers le DataTable
 const menuRefs = ref({}); // pour stocker les références des menus par utilisateur
+const selectedUsers = ref([]);  // Stocke les lignes sélectionnées
 
 function initFilters() {
 
@@ -235,6 +249,13 @@ async function deleteUser(id) {
     }
 }
 
+const showSelected = () => {
+    const data = JSON.parse(JSON.stringify(selectedUsers.value));
+    console.log("Sélection :", data);
+
+    showToast('info', 'Sélection', data.length + ' ligne(s) sélectionnée(s)');
+};
+
 onMounted(() => {
     fetchUsers();
 });
@@ -257,6 +278,7 @@ onMounted(() => {
             @page="onPage"
             dataKey="id"
             :rowHover="true"
+            v-model:selection="selectedUsers"
             v-model:filters="filters"
             filterDisplay="menu"
             :globalFilterFields="['name','email','roles','login']"
@@ -283,6 +305,13 @@ onMounted(() => {
                         <label for="in_label">Recherche...</label>
                     </FloatLabel>
                     <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
+                        <Button 
+                            v-if="selectedUsers.length > 0"
+                            label="" 
+                            icon="pi pi-trash" 
+                            severity="danger" 
+                            @click="showSelected"
+                        />
                         <Button type="button" icon="pi pi-filter-slash" label="Filtre" @click="initFilters"/>
                         <Button type="button" icon="pi pi-refresh" @click="fetchUsers(true)" severity="warn" :disabled="loadingBtn" :loading="loadingBtn" :label="loadingBtn ? 'en cours...' : 'Actualiser'"/>
                         <SplitButton label="Pdf" icon="pi pi-file-pdf" :model="exportItemsPdf" severity="danger" />
@@ -297,6 +326,13 @@ onMounted(() => {
                     <p>Aucun utilisateur disponible</p>
                 </div>
             </template>
+
+            <Column
+                selectionMode="multiple"
+                headerStyle="width:3rem"
+                style="width:3rem"
+            >
+            </Column>
 
             <Column field="id" header="N°" style="width:5%">
                 <template #body="{ index }">

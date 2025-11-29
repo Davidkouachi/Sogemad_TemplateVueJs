@@ -237,18 +237,50 @@ async function deleteUser(id) {
 }
 
 const showSelected = () => {
-    const data = JSON.parse(JSON.stringify(selectedUsers.value));
-    console.log("Sélection :", data);
+    // Copie simple des données
+    const before = JSON.parse(JSON.stringify(selectedUsers.value));
+    console.log("Sélection initiale :", before);
 
-    // showToast('info', 'Sélection', data.length + ' ligne(s) sélectionnée(s)');
+    showToast('info', 'Sélection', before.length + ' ligne(s) sélectionnée(s)');
 
-    // // Désélectionner uniquement les utilisateurs qui respectent la condition
-    // selectedUsers.value = selectedUsers.value
-    //     .filter(u => auth.user && auth.user.login != u.login)
-    //     .map(u => ({ ...u }));
+    // Lignes rejetées (interdites)
+    const rejected = selectedUsers.value.filter(
+        u => auth.user && auth.user.login === u.login
+    );
 
-    // const dataD = JSON.parse(JSON.stringify(selectedUsers.value));
-    // console.log("Après désélection :", dataD);
+    // Lignes conservées
+    const kept = selectedUsers.value.filter(
+        u => auth.user && auth.user.login !== u.login
+    );
+
+    // Mise à jour : on garde uniquement celles autorisées
+    selectedUsers.value = kept.map(u => ({ ...u }));
+
+    console.log("Lignes rejetées :", JSON.parse(JSON.stringify(rejected)));
+    console.log("Lignes conservées :", JSON.parse(JSON.stringify(kept)));
+    console.log("Après désélection :", JSON.parse(JSON.stringify(selectedUsers.value)));
+};
+
+const isSelected = (row) => {
+    return selectedUsers.value.some(u => u.id === row.id);
+};
+
+const toggleRow = (checked, row) => {
+    // 🔐 Interdiction de sélectionner soi-même
+    if (auth.user && auth.user.login === row.login) {
+        showToast('warn', 'Non autorisé', "Vous ne pouvez pas sélectionner votre propre compte.");
+        return;
+    }
+
+    if (checked) {
+        // Ajouter
+        if (!isSelected(row)) {
+            selectedUsers.value.push({ ...row });
+        }
+    } else {
+        // Retirer
+        selectedUsers.value = selectedUsers.value.filter(u => u.id !== row.id);
+    }
 };
 
 onMounted(() => {
@@ -289,31 +321,31 @@ onMounted(() => {
 
 // }, { deep: true });
 
-watch(selectedUsers, (newVal, oldVal) => {
-    // Détecter les lignes ajoutées
-    const added = newVal.filter(u => !oldVal.some(o => o.id === u.id));
-    if (!added.length) return; // rien de nouveau
+// watch(selectedUsers, (newVal, oldVal) => {
+//     // Détecter les lignes ajoutées
+//     const added = newVal.filter(u => !oldVal.some(o => o.id === u.id));
+//     if (!added.length) return; // rien de nouveau
 
-    // Filtrer les lignes non autorisées
-    const disallowed = added.filter(u => auth.user && auth.user.login === u.login);
-    if (!disallowed.length) return; // toutes les lignes sont autorisées
+//     // Filtrer les lignes non autorisées
+//     const disallowed = added.filter(u => auth.user && auth.user.login === u.login);
+//     if (!disallowed.length) return; // toutes les lignes sont autorisées
 
-    // Vérifier si c'est un checkboxAll (plus d'une ligne ajoutée)
-    if (added.length > 1) {
-        const logins = disallowed.map(u => u.login).join(', ');
-        showToast('info', 'Lignes non autorisées', `Tentative de sélection globale des lignes non autorisées : ${logins}`);
-        console.log("Checkbox All - lignes non autorisées :", disallowed);
-    } else if (added.length === 1) {
-        showToast('info', 'Ligne non autorisée', `Tentative de sélection d'une ligne non autorisée : ${disallowed[0].login}`);
-        console.log("Ligne non autorisée :", disallowed[0]);
-    }
+//     // Vérifier si c'est un checkboxAll (plus d'une ligne ajoutée)
+//     if (added.length > 1) {
+//         const logins = disallowed.map(u => u.login).join(', ');
+//         showToast('info', 'Lignes non autorisées', `Tentative de sélection globale des lignes non autorisées : ${logins}`);
+//         console.log("Checkbox All - lignes non autorisées :", disallowed);
+//     } else if (added.length === 1) {
+//         showToast('info', 'Ligne non autorisée', `Tentative de sélection d'une ligne non autorisée : ${disallowed[0].login}`);
+//         console.log("Ligne non autorisée :", disallowed[0]);
+//     }
 
-    // Retirer automatiquement les lignes non autorisées
-    nextTick(() => {
-        selectedUsers.value = newVal.filter(u => auth.user && auth.user.login !== u.login);
-    });
+//     // Retirer automatiquement les lignes non autorisées
+//     nextTick(() => {
+//         selectedUsers.value = newVal.filter(u => auth.user && auth.user.login !== u.login);
+//     });
 
-}, { deep: true });
+// }, { deep: true });
 
 
 </script>
@@ -383,11 +415,15 @@ watch(selectedUsers, (newVal, oldVal) => {
                 </div>
             </template>
 
-            <Column
-                selectionMode="multiple"
-                headerStyle="width:3rem"
-                style="width:3rem"
-            >
+            <Column style="width:3rem">
+                <template #body="{ data }">
+                    <Checkbox
+                        binary
+                        :modelValue="isSelected(data)"
+                        @update:modelValue="val => toggleRow(val, data)"
+                        :disabled="auth.user && auth.user.login === data.login"
+                    />
+                </template>
             </Column>
 
             <Column field="id" header="N°" style="width:5%">
@@ -417,6 +453,9 @@ watch(selectedUsers, (newVal, oldVal) => {
                                 </span>
                                 <span class="text-sm text-gray-600" >
                                     {{ data.email }}
+                                </span>
+                                <span class="text-sm text-gray-600" >
+                                    {{ data.id }}
                                 </span>
                             </div>
                         </div>

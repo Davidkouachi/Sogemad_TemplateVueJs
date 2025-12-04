@@ -14,5 +14,3 @@ import { model } from '@/layout/composables/menuUtils';
         </template>
     </ul>
 </template>
-
-<style lang="scss" scoped></style>

@@ -97,6 +97,21 @@ const totalPages = computed(() => {
         : 1;
 });
 
+const rowClass = (data) => {
+    // 1. Pendant le chargement du tableau → aucune couleur
+    if (loading.value) {
+        return '';
+    }
+
+    // 2. L’utilisateur connecté → vert ciel
+    if (auth.user && auth.user.login === data.login) {
+        return 'row-connect-user';
+    }
+
+    // 3. Tous les autres utilisateurs → rouge ciel
+    return 'row-deconnect-user';
+};
+
 const getLignesPageCourante = () => {
     if (!dt.value) return [];
 
@@ -372,6 +387,7 @@ onMounted(() => {
             :globalFilterFields="['name','email','roles','login']"
             scrollable
             scrollHeight="auto"
+            :rowClass="rowClass"
         >
             <div class="flex justify-center my-4">
                 <Chip 
@@ -415,7 +431,7 @@ onMounted(() => {
                 </div>
             </template>
 
-            <Column style="width:3rem">
+            <Column style="width:2rem" class="p-0">
                 <template #body="{ data }">
                     <Checkbox
                         binary
@@ -453,9 +469,6 @@ onMounted(() => {
                                 </span>
                                 <span class="text-sm text-gray-600" >
                                     {{ data.email }}
-                                </span>
-                                <span class="text-sm text-gray-600" >
-                                    {{ data.id }}
                                 </span>
                             </div>
                         </div>
@@ -532,5 +545,11 @@ onMounted(() => {
 <style scoped lang="scss">
 :deep(.p-datatable-frozen-tbody) { font-weight: bold; }
 :deep(.p-datatable-scrollable .p-frozen-column) { font-weight: bold; }
+:deep(.row-connect-user) {
+    background-color: #ccfbf1 !important;
+}
+:deep(.row-deconnect-user) {
+    background-color: #fee2e2 !important;
+}
 </style>
     

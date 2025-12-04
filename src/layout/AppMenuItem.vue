@@ -149,4 +149,52 @@ function checkActiveRoute(item) {
     </li>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+// /* Texte des items */
+.layout-menuitem-root-text,
+.layout-menuitem-text,
+.layout-submenu-toggler,
+.layout-menuitem-icon {
+    color: #fff !important;
+}
+
+// /* Hover sur tous les liens et router-links */
+.layout-menuitem-root > a:hover,
+.layout-menuitem-root > router-link:hover,
+.layout-submenu > li > a:hover,
+.layout-submenu > li > router-link:hover {
+    background-color: #fff !important;
+    color: #6366f1 !important;
+}
+
+.layout-menuitem-root > a:hover .layout-menuitem-text,
+.layout-menuitem-root > router-link:hover .layout-menuitem-text,
+.layout-submenu > li > a:hover .layout-menuitem-text,
+.layout-submenu > li > router-link:hover .layout-menuitem-text {
+    color: #6366f1 !important;
+}
+
+// /* Active uniquement sur le lien exact (pas le parent) */
+.active-route {
+    background-color: #fff !important;
+    color: #6366f1 !important;
+}
+
+ // Sous-menu texte 
+.layout-submenu .layout-menuitem-text {
+    color: #fff;
+}
+
+ // Pour les icônes si tu veux changer aussi 
+/* Activer couleur pour icône ET texte quand le route-link est actif */
+.active-route {
+    color: #6366f1 !important;
+
+    i,
+    .layout-menuitem-text {
+        color: #6366f1 !important;
+    }
+}
+</style>
+
+

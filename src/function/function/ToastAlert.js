@@ -13,7 +13,7 @@ export function useToastAlert() {
     
     toast.add({ severity, summary, detail, life, id }); 
     activeToasts.push(id);
-    console.log('Toast ajouté', id);
+    // console.log('Toast ajouté', id);
 
     if (id != null) removeAllExcept(id);
 
@@ -29,7 +29,7 @@ export function useToastAlert() {
     // console.log("Suppression de tous les toasts:", activeToasts);
     activeToasts.forEach(id => toast.remove({ id }));
     activeToasts = [];
-    console.log('toast supprimer');
+    // console.log('toast supprimer');
   }
 
   function removeAllExcept(idToKeep) {

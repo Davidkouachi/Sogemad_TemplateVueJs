@@ -358,8 +358,13 @@ const passwordValid = computed(() => {
 
 function verifMdp3() {
 
-    if (!key_Mdp1.value || !key_Mdp1.value) {
-      showToast('warn', 'Alerte', 'mot de passe incorrect');
+    if (!key_Mdp1.value || !key_Mdp2.value) {
+      showToast('warn', 'Alerte', 'Veuillez saisir le mot de passe incorrect');
+      return;
+    }
+
+    if (key_Mdp1.value !== key_Mdp2.value) {
+      showToast('warn', 'Alerte', 'Mot de passe incorrect');
       return;
     }
 

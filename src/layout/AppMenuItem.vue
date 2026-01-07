@@ -162,9 +162,14 @@ function checkActiveRoute(item) {
 .layout-menuitem-root > a:hover,
 .layout-menuitem-root > router-link:hover,
 .layout-submenu > li > a:hover,
-.layout-submenu > li > router-link:hover {
+.layout-submenu > li > router-link:hover{
     background-color: #fff !important;
     color: #6366f1 !important;
+    border: 1px solid #6366f1 !important;
+
+    .layout-menuitem-icon {
+        color: #6366f1 !important;
+    }
 }
 
 .layout-menuitem-root > a:hover .layout-menuitem-text,
@@ -178,6 +183,7 @@ function checkActiveRoute(item) {
 .active-route {
     background-color: #fff !important;
     color: #6366f1 !important;
+    border: 1px solid #6366f1 !important;
 }
 
  // Sous-menu texte 

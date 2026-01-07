@@ -40,6 +40,7 @@ const customPages = [
     { path: '/List_utilisateur', name: 'List_utilisateur', component: () => import('@/views/pages/new/listUser.vue'), meta: { title: 'Liste des utilisateurs', requiresAuth: true } },
     { path: '/element_basic', name: 'element_basic', component: () => import('@/views/pages/new/element.vue'), meta: { title: 'Element', requiresAuth: true } },
     { path: '/element_chart', name: 'element_chart', component: () => import('@/views/pages/new/graphique.vue'), meta: { title: 'Graphique', requiresAuth: true } },
+    { path: '/element_calendrier', name: 'element_calendrier', component: () => import('@/views/pages/new/calendrier.vue'), meta: { title: 'Calendrier', requiresAuth: true } },
 ];
 
 // Routes principales

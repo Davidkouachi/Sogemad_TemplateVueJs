@@ -5,7 +5,7 @@
     width: 20rem;
     height: calc(100vh - 8rem);
     z-index: 999;
-    overflow-y: hidden;
+    overflow-y: none;
     user-select: none;
     top: 6rem;
     left: 2rem;
@@ -16,31 +16,28 @@
     background-color: var(--surface-overlay);
     border-radius: var(--content-border-radius);
     padding: 0.5rem 1.5rem;
-    background: #6366f1;
 }
 
-/* Hover: changer le background et afficher le scroll */
 .layout-sidebar:hover {
     overflow-y: auto;
 }
 
-/* Personnaliser la scrollbar pour Chrome, Edge et Safari */
 .layout-sidebar::-webkit-scrollbar {
     width: 8px;
 }
 
 .layout-sidebar::-webkit-scrollbar-track {
-    background: transparent; /* fond de la track */
+    background: transparent;
     border-radius: 4px;
 }
 
 .layout-sidebar::-webkit-scrollbar-thumb {
-    background-color: #ffffff; /* couleur du scroll */
+    background-color: #ffffff;
     border-radius: 4px;
 }
 
 .layout-sidebar::-webkit-scrollbar-thumb:hover {
-    background-color: #ffffff; /* couleur au survol du scroll */
+    background-color: #ffffff;
 }
 
 .layout-menu {

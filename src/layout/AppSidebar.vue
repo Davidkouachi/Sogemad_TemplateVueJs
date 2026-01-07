@@ -9,5 +9,8 @@ import AppMenu from './AppMenu.vue';
 </template>
 
 <style lang="scss">
+.layout-sidebar {
+    background-color: #6366f1 !important;
+}
 </style>
 

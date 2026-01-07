@@ -104,12 +104,12 @@ const rowClass = (data) => {
     }
 
     // 2. L’utilisateur connecté → vert ciel
-    if (auth.user && auth.user.login === data.login) {
-        return 'row-connect-user';
-    }
+    // if (auth.user && auth.user.login === data.login) {
+    //     return 'row-connect-user';
+    // }
 
     // 3. Tous les autres utilisateurs → rouge ciel
-    return 'row-deconnect-user';
+    // return 'row-deconnect-user';
 };
 
 const getLignesPageCourante = () => {

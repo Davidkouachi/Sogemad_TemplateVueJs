@@ -148,10 +148,10 @@ calendarOptions.value = {
         info.el.setAttribute('title', desc)
 
         // Style arrondi et ombre
-        info.el.style.borderRadius = '4px'
-        info.el.style.padding = '2px 4px'
-        info.el.style.margin = '2px 5px'
-        info.el.style.fontSize = '0.85rem'
+        // info.el.style.borderRadius = '4px'
+        // info.el.style.padding = '2px 4px'
+        // info.el.style.margin = '2px 5px'
+        // info.el.style.fontSize = '0.85rem'
 
         // Assurer que le texte reste lisible
         if(!info.event.textColor) {
@@ -202,7 +202,6 @@ function sortEvents() {
   <h1 class="calendar-title">Calendrier</h1>
   <FullCalendar :options="calendarOptions" />
 
-  <!-- Modal -->
   <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
     <div class="modal-content">
       <template v-if="formMode === 'event'">
@@ -261,6 +260,91 @@ function sortEvents() {
 
 <style scoped>
 
+/* Barre du calendrier (header) */
+:deep(.fc-toolbar) {
+  margin-bottom: 15px !important;
+}
+
+:deep(.fc-toolbar-title) {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+/* Boutons (prev / next / today) */
+:deep(.fc .fc-button) {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+:deep(.fc .fc-button:hover) {
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  transform: translateY(-1px);
+}
+
+:deep(.fc .fc-button:disabled) {
+  background: #2563eb;
+}
+
+/* Jours de la semaine */
+:deep(.fc-col-header-cell) {
+  background-color: #1e40af;
+  font-weight: 700;
+  color: white;
+  padding: 10px 0;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+/* Cellules des jours */
+:deep(.fc-daygrid-day) {
+  background-color: #ffffff;
+  transition: background 0.2s;
+}
+
+:deep(.fc-daygrid-day:hover) {
+  background-color: #f8fafc;
+}
+
+/* Numéro du jour */
+:deep(.fc-daygrid-day-number) {
+  font-weight: 700;
+  color: #475569;
+  padding: 6px;
+}
+
+/* Événements (TRÈS IMPORTANT) */
+:deep(.fc-event) {
+  border-radius: 8px !important;
+  padding: 3px 6px !important;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+:deep(.fc-event:hover) {
+  opacity: 0.9;
+  transform: scale(1.01);
+}
+
+/* Bouton “+X autres” */
+:deep(.fc-daygrid-more-link) {
+  font-weight: 700;
+  color: #2563eb;
+}
+
+/* Jour actuel (today) */
+:deep(.fc-day-today) {
+  background: rgba(37, 99, 235, 0.08) !important;
+}
+
+
 .calendar-title {
   text-align: center;
   margin-bottom: 20px;
@@ -268,27 +352,6 @@ function sortEvents() {
   color: #333;
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-
-.fc-toolbar-title {
-  font-weight: bold;
-  font-size: 1.5rem;
-  color: blue;
-}
-
-.fc button {
-  background-color: #00bcd4;
-  color: white;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.fc button:hover {
-  background-color: #0097a7;
 }
 
 .modal-backdrop {

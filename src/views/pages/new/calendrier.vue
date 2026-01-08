@@ -38,10 +38,24 @@ const defaultEvents = [
       telephones: ['05 11 22 33 44'],
       adresse: 'COCODY'
     }
+  },
+  {
+    title: 'PHCIE david – Cocody',
+    start: '2026-01-03T14:00:00',
+    end: '2026-01-03T18:00:00',
+    backgroundColor: '#dc3545',
+    borderColor: '#dc3545',
+    textColor: 'white',
+    extendedProps: {
+      responsable: 'MR david',
+      telephones: ['05 11 22 33 44'],
+      adresse: 'COCODY'
+    }
   }
 ]
 
 // Réfs
+let tooltipEl = null
 const calendarOptions = ref({})
 const events = ref([...defaultEvents])
 const showModal = ref(false)
@@ -123,6 +137,8 @@ calendarOptions.value = {
   locale: frLocale,
   height: 'auto',
   contentHeight: 'auto',
+  expandRows: true,
+  displayEventTime: true,
   aspectRatio: 1.8,
   headerToolbar: {
     left: 'prev,next today',
@@ -136,8 +152,8 @@ calendarOptions.value = {
     week: 'Semaine'
   },
   events: events.value,
-  dayMaxEvents: 3,
-  dayMaxEventRows: 3,
+  dayMaxEvents: 2,
+  dayMaxEventRows: 2,
   eventClick: handleEventClick,
   dateClick: handleDateClick,
   eventDidMount: (info) => {
@@ -147,48 +163,12 @@ calendarOptions.value = {
                      `Adresse: ${info.event.extendedProps.adresse}`
         info.el.setAttribute('title', desc)
 
-        // Style arrondi et ombre
-        // info.el.style.borderRadius = '4px'
-        // info.el.style.padding = '2px 4px'
-        // info.el.style.margin = '2px 5px'
-        // info.el.style.fontSize = '0.85rem'
-
-        // Assurer que le texte reste lisible
-        if(!info.event.textColor) {
-          info.el.style.color = 'white'
-        }
-
-        // Si tu veux, tu peux aussi mettre une bordure plus sombre
         if(info.event.backgroundColor) {
           info.el.style.border = `1px solid ${info.event.backgroundColor}`
           info.el.style.color = `${info.event.backgroundColor}`
         }
       }
     },
-  //   validRange: {
-  //   start: new Date() // désactive toutes les dates avant aujourd'hui
-  // }
-}
-
-function shadeColor(color, percent) {
-  // color = "#rrggbb"
-  let R = parseInt(color.substring(1,3),16)
-  let G = parseInt(color.substring(3,5),16)
-  let B = parseInt(color.substring(5,7),16)
-
-  R = parseInt(R * (100 + percent) / 100)
-  G = parseInt(G * (100 + percent) / 100)
-  B = parseInt(B * (100 + percent) / 100)
-
-  R = (R<255)?R:255
-  G = (G<255)?G:255
-  B = (B<255)?B:255
-
-  const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16))
-  const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16))
-  const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16))
-
-  return "#"+RR+GG+BB
 }
 
 function sortEvents() {
@@ -198,9 +178,12 @@ function sortEvents() {
 </script>
 
 <template>
-<div class="card">
+<div class="card calendar-card">
   <h1 class="calendar-title">Calendrier</h1>
-  <FullCalendar :options="calendarOptions" />
+
+  <div class="calendar-wrapper">
+    <FullCalendar :options="calendarOptions" />
+  </div>
 
   <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
     <div class="modal-content">
@@ -259,6 +242,20 @@ function sortEvents() {
 </template>
 
 <style scoped>
+
+.calendar-card {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.calendar-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+:deep(.fc) {
+  max-width: 100%;
+}
 
 /* Barre du calendrier (header) */
 :deep(.fc-toolbar) {
@@ -344,6 +341,59 @@ function sortEvents() {
   background: rgba(37, 99, 235, 0.08) !important;
 }
 
+/* MOBILE */
+@media (max-width: 768px) {
+
+   /* ❌ cacher l'heure */
+  :deep(.fc .fc-event-time,
+  .fc .fc-daygrid-event-time) {
+    display: none !important;
+  }
+
+  /* ❌ cacher le titre */
+  :deep(.fc-daygrid-event-title) {
+    display: none !important;
+  }
+
+  /* Afficher uniquement le point */
+  :deep(.fc-daygrid-event-dot) {
+    margin: 2px auto;
+  }
+
+  /* Centrer le point */
+  :deep(.fc-daygrid-event-harness) {
+    justify-content: center;
+  }
+
+  /* Toolbar empilée */
+  :deep(.fc-toolbar) {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  :deep(.fc-toolbar-title) {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  /* Boutons compacts */
+  :deep(.fc button) {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  /* Events plus courts */
+  :deep(.fc-event-title) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Cellules compactes */
+  :deep(.fc-daygrid-day-frame) {
+    padding: 2px;
+  }
+}
 
 .calendar-title {
   text-align: center;

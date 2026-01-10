@@ -88,8 +88,8 @@ const passwordValid = computed(() => {
 
 const userForm = async () => {
 
-    if (!login.value || !password.value) {
-      showToast('warn', 'Alerte', 'Login et mot de passe sont obligatoires');
+    if (!name.value || !email.value || !login.value || !password.value) {
+      showToast('warn', 'Alerte', 'Formulaire incomplet');
       return;
     }
 

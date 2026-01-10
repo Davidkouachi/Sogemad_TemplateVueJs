@@ -17,6 +17,7 @@ export const model = ref([
                     { label: 'Basic', icon: 'pi pi-list', to: '/element_basic', permissions: ['admin', 'user'], },
                     { label: 'Graphique', icon: 'pi pi-chart-bar', to: '/element_chart', permissions: ['admin', 'user'], },
                     { label: 'Calendrier', icon: 'pi pi-calendar', to: '/element_calendrier', permissions: ['admin', 'user'], },
+                    { label: 'Carte', icon: 'pi pi-map', to: '/element_carte', permissions: ['admin', 'user'], },
                 ]
             },
         ]

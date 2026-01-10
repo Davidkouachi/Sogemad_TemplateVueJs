@@ -280,6 +280,19 @@ const isSelected = (row) => {
     return selectedUsers.value.some(u => u.id === row.id);
 };
 
+const isAllSelected = computed(() => {
+    const selectable = users.value.filter(
+        u => !auth.user || u.login !== auth.user.login
+    );
+
+    return (
+        selectable.length > 0 &&
+        selectable.every(u =>
+            selectedUsers.value.some(s => s.id === u.id)
+        )
+    );
+});
+
 const toggleRow = (checked, row) => {
     // 🔐 Interdiction de sélectionner soi-même
     if (auth.user && auth.user.login === row.login) {
@@ -296,6 +309,26 @@ const toggleRow = (checked, row) => {
         // Retirer
         selectedUsers.value = selectedUsers.value.filter(u => u.id !== row.id);
     }
+};
+
+const toggleAll = (checked) => {
+    if (checked) {
+        // Sélectionner tout sauf l'utilisateur connecté
+        const allowed = users.value.filter(
+            u => !auth.user || u.login !== auth.user.login
+        );
+
+        selectedUsers.value = allowed.map(u => ({ ...u }));
+    } else {
+        // Tout désélectionner
+        selectedUsers.value = [];
+    }
+
+    showToast(
+        'info',
+        'Sélection',
+        checked ? 'Toutes les lignes autorisées sélectionnées' : 'Sélection annulée'
+    );
 };
 
 onMounted(() => {
@@ -432,6 +465,13 @@ onMounted(() => {
             </template>
 
             <Column style="width:2rem" class="p-0">
+                 <template #header>
+                    <Checkbox
+                        binary
+                        :modelValue="isAllSelected"
+                        @update:modelValue="toggleAll"
+                    />
+                </template>
                 <template #body="{ data }">
                     <Checkbox
                         binary

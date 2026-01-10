@@ -440,7 +440,10 @@ const connectLoginForm = async () => {
             device_id: deviceId
         });
 
+        loading.value = false;
+
         if (res.data.success) {
+            loading.value = true;
 
             const { access_token, refresh_token, user, expires_in } = res.data;
 
@@ -469,10 +472,10 @@ const connectLoginForm = async () => {
         }
     } 
     catch (err) {
+        loading.value = false;
         showToast('error', 'Erreur', err.message);
     } 
     finally {
-        loading.value = false;
         submitting = false;   // 🔥 permet à nouveau un clic, mais jamais double
     }
 };

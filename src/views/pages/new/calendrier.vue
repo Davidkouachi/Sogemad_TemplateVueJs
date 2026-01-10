@@ -3,8 +3,15 @@ import { ref } from 'vue'
 
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import listPlugin from '@fullcalendar/list'
+
 import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
+
+import tippy from 'tippy.js'
+import 'tippy.js/dist/tippy.css'
+import 'tippy.js/themes/light-border.css'
 
 const eventColors = {
   Normal: '#00bcd4',   // turquoise
@@ -132,7 +139,7 @@ sortEvents()
 
 // Options calendrier
 calendarOptions.value = {
-  plugins: [dayGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, interactionPlugin, listPlugin, timeGridPlugin],
   initialView: 'dayGridMonth',
   locale: frLocale,
   height: 'auto',
@@ -143,12 +150,19 @@ calendarOptions.value = {
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
-    right: 'dayGridDay,dayGridMonth,dayGridWeek'
+    right: 'dayGridDay,listWeek,dayGridMonth,listYear'
+  },
+  buttonIcons: {
+    listWeek: 'pi pi-list',
+    dayGridMonth: 'pi pi-calendar',
+    dayGridWeek: 'pi pi-calendar-plus',
+    dayGridDay: 'pi pi-calendar-times'
   },
   buttonText: {
     today: "Aujourd'hui",
     day: "Jour",
     month: 'Mois',
+    year: 'Année',
     week: 'Semaine'
   },
   events: events.value,
@@ -157,18 +171,46 @@ calendarOptions.value = {
   eventClick: handleEventClick,
   dateClick: handleDateClick,
   eventDidMount: (info) => {
-      if(info.event.extendedProps.responsable){
-        const desc = `Responsable: ${info.event.extendedProps.responsable}\n` +
-                     `Tel: ${info.event.extendedProps.telephones?.join(', ')}\n` +
-                     `Adresse: ${info.event.extendedProps.adresse}`
-        info.el.setAttribute('title', desc)
+      if(info.event.extendedProps.responsable) {
+        const content = `
+          <div class="tooltip-content">
+            <strong>Responsable :</strong> ${info.event.extendedProps.responsable}<br>
+            <strong>Tél :</strong> ${info.event.extendedProps.telephones?.join(', ') || '-'}<br>
+            <strong>Adresse :</strong> ${info.event.extendedProps.adresse || '-'}
+          </div>
+        `
+        const bg = info.event.backgroundColor
+
+        tippy(info.el, {
+          content,
+          allowHTML: true,
+          theme: 'light-border',
+          placement: 'top',
+          arrow: true,
+          interactive: true,
+          maxWidth: 350,          // largeur max (important)
+          theme: 'fc', // 👈 classe perso
+          onShow(instance) {
+            instance.popper.style.setProperty(
+              '--tooltip-bg',
+              bg
+            )
+          }
+        })
 
         if(info.event.backgroundColor) {
-          info.el.style.border = `1px solid ${info.event.backgroundColor}`
-          info.el.style.color = `${info.event.backgroundColor}`
+          info.el.style.borderBottom = `1px solid ${bg}`
+          info.el.style.color = `${bg}`
+          info.el.style.margin = `2px 5px`
         }
       }
     },
+  eventWillUnmount: (info) => {
+    if (info.el._tippy) {
+      info.el._tippy.destroy()
+    }
+  },
+
 }
 
 function sortEvents() {
@@ -317,12 +359,12 @@ function sortEvents() {
 
 /* Événements (TRÈS IMPORTANT) */
 :deep(.fc-event) {
-  border-radius: 8px !important;
   padding: 3px 6px !important;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  background: white;
 }
 
 :deep(.fc-event:hover) {
@@ -338,7 +380,8 @@ function sortEvents() {
 
 /* Jour actuel (today) */
 :deep(.fc-day-today) {
-  background: rgba(37, 99, 235, 0.08) !important;
+  background: #e0e0e0 !important;
+  color: #1e40af;
 }
 
 /* MOBILE */
@@ -393,6 +436,21 @@ function sortEvents() {
   :deep(.fc-daygrid-day-frame) {
     padding: 2px;
   }
+}
+
+/* tooltip event */
+:deep(.tippy-box[data-theme~='fc']) {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+:deep(.tippy-box[data-theme~='fc'] .tippy-content) {
+  padding: 10px 14px;
+  max-width: 350px;
+}
+
+:deep(.tippy-box[data-theme~='fc'] strong) {
+  font-weight: 600;
 }
 
 .calendar-title {
